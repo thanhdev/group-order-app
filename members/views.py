@@ -12,7 +12,7 @@ class MemberViewSet(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = MemberSerializer
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def me(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
