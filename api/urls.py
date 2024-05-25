@@ -24,7 +24,7 @@ from rest_framework_simplejwt.views import (
 
 from members.views import MemberViewSet
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"members", MemberViewSet, basename="members")
 
 
