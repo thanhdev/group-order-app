@@ -1,1 +1,3 @@
-Django==4.1.3
+Django==5.1a1
+django-environ==0.11.2  # https://github.com/joke2k/django-environ
+psycopg2-binary==2.9.9
