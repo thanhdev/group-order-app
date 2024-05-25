@@ -16,7 +16,7 @@ Our Django application, `example` is configured as an installed application in `
 # api/settings.py
 INSTALLED_APPS = [
     # ...
-    'example',
+    'orders',
 ]
 ```
 
@@ -69,8 +69,7 @@ This view is exposed a URL through `example/urls.py`:
 # example/urls.py
 from django.urls import path
 
-from example.views import index
-
+from orders.views import index
 
 urlpatterns = [
     path('', index),
@@ -85,7 +84,7 @@ from django.urls import path, include
 
 urlpatterns = [
     ...
-    path('', include('example.urls')),
+    path('', include('orders.urls')),
 ]
 ```
 
