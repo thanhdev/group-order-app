@@ -41,9 +41,9 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path(
-        "api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"
+        "api/token", TokenObtainPairView.as_view(), name="token_obtain_pair"
     ),
     path(
-        "api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"
+        "api/token/refresh", TokenRefreshView.as_view(), name="token_refresh"
     ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
