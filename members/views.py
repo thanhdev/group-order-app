@@ -16,5 +16,8 @@ class MemberViewSet(CreateModelMixin, GenericViewSet):
         detail=False, methods=["get"], permission_classes=[IsAuthenticated]
     )
     def me(self, request, *args, **kwargs):
+        """
+        Get the authenticated user's profile.
+        """
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
