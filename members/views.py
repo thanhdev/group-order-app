@@ -12,12 +12,18 @@ class MemberViewSet(CreateModelMixin, GenericViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
 
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new member.
+        """
+        return super().create(request, *args, **kwargs)
+
     @action(
         detail=False, methods=["get"], permission_classes=[IsAuthenticated]
     )
     def me(self, request, *args, **kwargs):
         """
-        Get the authenticated user's profile.
+        Get the authenticated member's profile.
         """
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
