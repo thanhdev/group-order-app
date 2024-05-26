@@ -50,3 +50,7 @@ class Order(models.Model):
         if self.group_order:
             return GroupOrderStatus(self.group_order.status)
         return GroupOrderStatus.DRAFT
+
+    def pay(self):
+        self.is_paid = True
+        self.save()

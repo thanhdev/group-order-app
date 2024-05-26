@@ -2,14 +2,17 @@ from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import MemberTestCase
-from orders.models import Order
+from orders.enums import GroupOrderStatus
+from orders.models import Order, GroupOrder
 
 
 class TestOrderViewSet(MemberTestCase):
     def setUp(self):
         super().setUp()
         mixer.cycle(2).blend(Order, member=self.member, is_paid=True)
-        mixer.cycle(3).blend(Order, member=self.member, is_paid=False)
+        self.unpaid_orders = mixer.cycle(3).blend(
+            Order, member=self.member, is_paid=False
+        )
         mixer.cycle(2).blend(Order, member=self.member_2, is_paid=True)
 
     def test_create(self):
@@ -49,3 +52,36 @@ class TestOrderViewSet(MemberTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
+
+    def test_pay(self):
+        self.client.force_authenticate(self.member)
+        order = self.unpaid_orders[0]
+        url = reverse_lazy("orders-pay", kwargs={"pk": order.id})
+
+        # not ready for payment
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["detail"], "This order is not ready for payment."
+        )
+
+        # ready
+        order.group_order = mixer.blend(
+            GroupOrder,
+            host_member=self.member,
+            status=GroupOrderStatus.IN_PROGRESS,
+        )
+        order.save()
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["is_paid"])
+
+        # not host
+        order.group_order.host_member = self.member_2
+        order.group_order.save()
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.data["detail"],
+            "You do not have permission to pay for this order.",
+        )
