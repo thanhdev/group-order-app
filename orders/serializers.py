@@ -37,12 +37,12 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "items",
-            "order_group",
+            "group_order",
             "is_paid",
             "ordered_by",
             "created_at",
         )
         extra_kwargs = {
-            "order_group": {"read_only": True},
+            "group_order": {"read_only": True},
             "is_paid": {"read_only": True},
         }

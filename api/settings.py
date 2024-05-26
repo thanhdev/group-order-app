@@ -36,15 +36,19 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".vercel.app"]
 # Application definition
 
 INSTALLED_APPS = [
+    # Django modules
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third-party
     "rest_framework",
     "drf_spectacular",
+    "django_filters",
     "corsheaders",
+    # Local
     "orders",
     "members",
 ]
@@ -133,6 +137,9 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser",),
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ),
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }

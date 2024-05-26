@@ -35,7 +35,7 @@ class Order(models.Model):
     member = models.ForeignKey(
         Member, on_delete=models.CASCADE, related_name="orders"
     )
-    order_group = models.ForeignKey(
+    group_order = models.ForeignKey(
         GroupOrder,
         on_delete=models.CASCADE,
         related_name="orders",
@@ -47,6 +47,6 @@ class Order(models.Model):
 
     @property
     def status(self) -> GroupOrderStatus:
-        if self.order_group:
-            return GroupOrderStatus(self.order_group.status)
+        if self.group_order:
+            return GroupOrderStatus(self.group_order.status)
         return GroupOrderStatus.DRAFT

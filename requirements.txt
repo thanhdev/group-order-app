@@ -1,7 +1,9 @@
 Django==4.2.13
 django-cors-headers==4.3.1  # https://github.com/adamchainz/django-cors-headers
 django-environ==0.11.2  # https://github.com/joke2k/django-environ
+django-filter==24.2
 djangorestframework==3.15.1
 djangorestframework-simplejwt==5.3.1
 drf-spectacular==0.27.2
+mixer==7.2.2
 psycopg2-binary==2.9.9
