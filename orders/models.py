@@ -11,6 +11,11 @@ class GroupOrder(models.Model):
     actual_amount = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
+    status = models.CharField(
+        max_length=50,
+        choices=GroupOrderStatus.choices,
+        default=GroupOrderStatus.DRAFT,
+    )
 
 
 class OrderItem(models.Model):
@@ -18,8 +23,9 @@ class OrderItem(models.Model):
         "Order", related_name="items", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.PositiveIntegerField()
     quantity = models.PositiveIntegerField(default=1)
+    note = models.TextField(blank=True, null=True)
 
     def get_cost(self):
         return self.unit_price * self.quantity
@@ -30,13 +36,17 @@ class Order(models.Model):
         Member, on_delete=models.CASCADE, related_name="orders"
     )
     order_group = models.ForeignKey(
-        GroupOrder, on_delete=models.CASCADE, related_name="orders"
-    )
-    status = models.CharField(
-        max_length=255,
-        choices=GroupOrderStatus.choices,
-        default=GroupOrderStatus.DRAFT,
+        GroupOrder,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        null=True,
+        blank=True,
     )
     is_paid = models.BooleanField(default=False)
-    note = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def status(self) -> GroupOrderStatus:
+        if self.order_group:
+            return GroupOrderStatus(self.order_group.status)
+        return GroupOrderStatus.DRAFT

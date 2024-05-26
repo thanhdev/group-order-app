@@ -26,10 +26,11 @@ from rest_framework_simplejwt.views import (
 )
 
 from members.views import MemberViewSet
+from orders.views import OrderViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"members", MemberViewSet, basename="members")
-
+router.register(r"orders", OrderViewSet, basename="orders")
 
 urlpatterns = [
     path("admin", admin.site.urls),
@@ -40,9 +41,7 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
-    path(
-        "api/token", TokenObtainPairView.as_view(), name="token_obtain_pair"
-    ),
+    path("api/token", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path(
         "api/token/refresh", TokenRefreshView.as_view(), name="token_refresh"
     ),

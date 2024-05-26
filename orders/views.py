@@ -1,17 +1,17 @@
-# example/views.py
-from datetime import datetime
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 
-from django.http import HttpResponse
+from orders.models import Order
+from orders.serializers import OrderSerializer
 
 
-def index(request):
-    now = datetime.now()
-    html = f"""
-    <html>
-        <body>
-            <h1>Hello from Vercel!</h1>
-            <p>The current time is { now }.</p>
-        </body>
-    </html>
-    """
-    return HttpResponse(html)
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Order.objects.order_by("-created_at")
+        if self.request.method not in SAFE_METHODS:
+            member = self.request.user
+            queryset = queryset.filter(member=member)
+        return queryset

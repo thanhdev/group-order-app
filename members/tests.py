@@ -1,6 +1,7 @@
 from rest_framework.reverse import reverse_lazy
 from rest_framework.test import APITestCase
 
+from core.tests import MemberTestCase
 from members.models import Member
 
 
@@ -18,14 +19,9 @@ class TestMemberViewSet(APITestCase):
         self.assertTrue(user.is_active)
 
 
-class TestTokenObtainPairView(APITestCase):
-    def setUp(self):
-        Member.objects.create_user(
-            username="test", email="test@gmail.com", password="test"
-        )
-
+class TestTokenObtainPairView(MemberTestCase):
     def test_login(self):
-        data = {"email": "test@gmail.com", "password": "test"}
+        data = {"email": self.member.email, "password": "test"}
         response = self.client.post(reverse_lazy("token_obtain_pair"), data)
 
         self.assertEqual(response.status_code, 200)
@@ -39,7 +35,7 @@ class TestTokenObtainPairView(APITestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_login_invalid(self):
-        data = {"email": "test@gmail.com", "password": "wrong"}
+        data = {"email": self.member.email, "password": "wrong"}
         response = self.client.post(reverse_lazy("token_obtain_pair"), data)
 
         self.assertEqual(response.status_code, 401)
