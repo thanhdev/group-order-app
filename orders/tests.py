@@ -83,6 +83,7 @@ class TestGroupOrderViewSet(OrderTestCase):
     def setUp(self):
         super().setUp()
         self.group_order = mixer.blend(GroupOrder, host_member=self.member)
+        self.group_order.orders.set(mixer.cycle(3).blend(Order))
         mixer.blend(
             GroupOrder,
             host_member=self.member_2,
@@ -131,4 +132,31 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(
             response.data[0]["status"], GroupOrderStatus.IN_PROGRESS
+        )
+
+    def test_retrieve(self):
+        self.client.force_authenticate(self.member)
+        url = reverse_lazy(
+            "group-orders-detail", kwargs={"pk": self.group_order.id}
+        )
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["host_member"]["id"], self.member.id)
+        self.assertEqual(response.data["status"], GroupOrderStatus.IN_PROGRESS)
+        self.assertEqual(len(response.data["orders"]), 3)
+
+    def test_delete(self):
+        self.client.force_authenticate(self.member)
+        url = reverse_lazy(
+            "group-orders-detail", kwargs={"pk": self.group_order.id}
+        )
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(
+            GroupOrder.objects.filter(id=self.group_order.id).exists()
+        )
+        self.assertEqual(
+            Order.objects.filter(group_order=self.group_order).count(), 0
         )
