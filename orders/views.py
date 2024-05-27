@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from orders.enums import GroupOrderStatus
-from orders.filters import OrderFilter
+from orders.filters import OrderFilter, GroupOrderFilter
 from orders.models import Order, GroupOrder
 from orders.serializers import OrderSerializer, GroupOrderSerializer
 
@@ -65,6 +65,7 @@ class GroupOrderViewSet(
 ):
     serializer_class = GroupOrderSerializer
     permission_classes = [IsAuthenticated]
+    filterset_class = GroupOrderFilter
 
     def get_queryset(self):
         queryset = GroupOrder.objects.order_by("-created_at")

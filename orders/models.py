@@ -14,7 +14,7 @@ class GroupOrder(models.Model):
     status = models.CharField(
         max_length=50,
         choices=GroupOrderStatus.choices,
-        default=GroupOrderStatus.DRAFT,
+        default=GroupOrderStatus.IN_PROGRESS,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

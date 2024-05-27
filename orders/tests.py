@@ -80,6 +80,15 @@ class TestOrderViewSet(OrderTestCase):
 
 
 class TestGroupOrderViewSet(OrderTestCase):
+    def setUp(self):
+        super().setUp()
+        self.group_order = mixer.blend(GroupOrder, host_member=self.member)
+        mixer.blend(
+            GroupOrder,
+            host_member=self.member_2,
+            status=GroupOrderStatus.COMPLETED,
+        )
+
     def test_create(self):
         self.client.force_authenticate(self.member)
         order_ids = [order.id for order in self.unpaid_orders[:3]]
@@ -93,10 +102,33 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertIsNotNone(group_order)
         self.assertEqual(group_order.orders.count(), 3)
         self.assertEqual(group_order.host_member, self.member)
+        self.assertEqual(group_order.status, GroupOrderStatus.IN_PROGRESS)
 
     def test_list(self):
         self.client.force_authenticate(self.member)
         response = self.client.get(reverse_lazy("group-orders-list"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data), 2)
+
+        # filter by host_member
+        response = self.client.get(
+            reverse_lazy("group-orders-list"),
+            {"host_member": self.member_2.id},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data[0]["host_member"]["id"], self.member_2.id
+        )
+
+        # filter by status
+        response = self.client.get(
+            reverse_lazy("group-orders-list"),
+            {"status": GroupOrderStatus.IN_PROGRESS},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data[0]["status"], GroupOrderStatus.IN_PROGRESS
+        )
