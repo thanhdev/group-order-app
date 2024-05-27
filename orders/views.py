@@ -13,8 +13,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from orders.enums import GroupOrderStatus
 from orders.filters import OrderFilter
-from orders.models import Order
-from orders.serializers import OrderSerializer
+from orders.models import Order, GroupOrder
+from orders.serializers import OrderSerializer, GroupOrderSerializer
 
 
 class OrderViewSet(
@@ -54,3 +54,21 @@ class OrderViewSet(
         order.pay()
         serializer = self.get_serializer(order)
         return Response(serializer.data)
+
+
+class GroupOrderViewSet(
+    ListModelMixin,
+    RetrieveModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+    GenericViewSet,
+):
+    serializer_class = GroupOrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = GroupOrder.objects.order_by("-created_at")
+        if self.request.method not in SAFE_METHODS:
+            member = self.request.user
+            queryset = queryset.filter(host_member=member)
+        return queryset

@@ -16,6 +16,7 @@ class GroupOrder(models.Model):
         choices=GroupOrderStatus.choices,
         default=GroupOrderStatus.DRAFT,
     )
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class OrderItem(models.Model):

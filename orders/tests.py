@@ -1,20 +1,12 @@
 from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
-from core.tests import MemberTestCase
+from core.tests import OrderTestCase
 from orders.enums import GroupOrderStatus
 from orders.models import Order, GroupOrder
 
 
-class TestOrderViewSet(MemberTestCase):
-    def setUp(self):
-        super().setUp()
-        mixer.cycle(2).blend(Order, member=self.member, is_paid=True)
-        self.unpaid_orders = mixer.cycle(3).blend(
-            Order, member=self.member, is_paid=False
-        )
-        mixer.cycle(2).blend(Order, member=self.member_2, is_paid=True)
-
+class TestOrderViewSet(OrderTestCase):
     def test_create(self):
         self.client.force_authenticate(self.member)
         data = {
@@ -85,3 +77,26 @@ class TestOrderViewSet(MemberTestCase):
             response.data["detail"],
             "You do not have permission to pay for this order.",
         )
+
+
+class TestGroupOrderViewSet(OrderTestCase):
+    def test_create(self):
+        self.client.force_authenticate(self.member)
+        order_ids = [order.id for order in self.unpaid_orders[:3]]
+        data = {"orders": order_ids}
+        response = self.client.post(reverse_lazy("group-orders-list"), data)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(response.data["orders"]), 3)
+
+        group_order = GroupOrder.objects.last()
+        self.assertIsNotNone(group_order)
+        self.assertEqual(group_order.orders.count(), 3)
+        self.assertEqual(group_order.host_member, self.member)
+
+    def test_list(self):
+        self.client.force_authenticate(self.member)
+        response = self.client.get(reverse_lazy("group-orders-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
