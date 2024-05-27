@@ -1,4 +1,3 @@
-from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import OrderTestCase
@@ -29,7 +28,7 @@ class TestOrderViewSet(OrderTestCase):
         response = self.client.get(reverse_lazy("orders-list"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data), 9)
 
         # filter by is_paid
         response = self.client.get(
@@ -47,7 +46,7 @@ class TestOrderViewSet(OrderTestCase):
 
     def test_pay(self):
         self.client.force_authenticate(self.member)
-        order = self.unpaid_orders[0]
+        order = self.draft_orders[0]
         url = reverse_lazy("orders-pay", kwargs={"pk": order.id})
 
         # not ready for payment
@@ -58,12 +57,8 @@ class TestOrderViewSet(OrderTestCase):
         )
 
         # ready
-        order.group_order = mixer.blend(
-            GroupOrder,
-            host_member=self.member,
-            status=GroupOrderStatus.IN_PROGRESS,
-        )
-        order.save()
+        order = self.completed_orders[0]
+        url = reverse_lazy("orders-pay", kwargs={"pk": order.id})
         response = self.client.put(url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["is_paid"])
@@ -80,19 +75,9 @@ class TestOrderViewSet(OrderTestCase):
 
 
 class TestGroupOrderViewSet(OrderTestCase):
-    def setUp(self):
-        super().setUp()
-        self.group_order = mixer.blend(GroupOrder, host_member=self.member)
-        self.group_order.orders.set(mixer.cycle(3).blend(Order))
-        mixer.blend(
-            GroupOrder,
-            host_member=self.member_2,
-            status=GroupOrderStatus.COMPLETED,
-        )
-
     def test_create(self):
         self.client.force_authenticate(self.member)
-        order_ids = [order.id for order in self.unpaid_orders[:3]]
+        order_ids = [order.id for order in self.draft_orders[:3]]
         data = {"orders": order_ids}
         response = self.client.post(reverse_lazy("group-orders-list"), data)
 
@@ -101,9 +86,11 @@ class TestGroupOrderViewSet(OrderTestCase):
 
         group_order = GroupOrder.objects.last()
         self.assertIsNotNone(group_order)
-        self.assertEqual(group_order.orders.count(), 3)
         self.assertEqual(group_order.host_member, self.member)
         self.assertEqual(group_order.status, GroupOrderStatus.IN_PROGRESS)
+        self.assertEqual(group_order.orders.count(), 3)
+        for order in group_order.orders.all():
+            self.assertEqual(order.status, GroupOrderStatus.IN_PROGRESS)
 
     def test_list(self):
         self.client.force_authenticate(self.member)
@@ -144,7 +131,7 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["host_member"]["id"], self.member.id)
         self.assertEqual(response.data["status"], GroupOrderStatus.IN_PROGRESS)
-        self.assertEqual(len(response.data["orders"]), 3)
+        self.assertEqual(len(response.data["orders"]), 2)
 
     def test_delete(self):
         self.client.force_authenticate(self.member)

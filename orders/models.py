@@ -1,7 +1,7 @@
 from django.db import models
 
 from members.models import Member
-from orders.enums import GroupOrderStatus
+from orders.enums import GroupOrderStatus, OrderStatus
 
 
 class GroupOrder(models.Model):
@@ -38,19 +38,18 @@ class Order(models.Model):
     )
     group_order = models.ForeignKey(
         GroupOrder,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="orders",
         null=True,
         blank=True,
     )
+    status = models.CharField(
+        max_length=50,
+        choices=OrderStatus.choices,
+        default=OrderStatus.DRAFT,
+    )
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def status(self) -> GroupOrderStatus:
-        if self.group_order:
-            return GroupOrderStatus(self.group_order.status)
-        return GroupOrderStatus.DRAFT
 
     def pay(self):
         self.is_paid = True

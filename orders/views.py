@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from orders.enums import GroupOrderStatus
+from orders.enums import OrderStatus
 from orders.filters import OrderFilter, GroupOrderFilter
 from orders.models import Order, GroupOrder
 from orders.serializers import OrderSerializer, GroupOrderSerializer
@@ -42,7 +42,7 @@ class OrderViewSet(
         Pay for an order. Only the host member of a group order can pay for it.
         """
         order = self.get_object()
-        if order.status != GroupOrderStatus.IN_PROGRESS:
+        if order.status != OrderStatus.COMPLETED:
             raise ValidationError(
                 {"detail": "This order is not ready for payment."}
             )

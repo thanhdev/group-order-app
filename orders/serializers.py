@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from members.serializers import MemberSerializer
+from orders.enums import OrderStatus
 from orders.models import OrderItem, Order, GroupOrder
 
 
@@ -52,7 +53,8 @@ class OrderSerializer(serializers.ModelSerializer):
 class GroupOrderSerializer(serializers.ModelSerializer):
     host_member = MemberSerializer(read_only=True)
     orders = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Order.objects.filter(group_order=None).all()
+        many=True,
+        queryset=Order.objects.filter(status=OrderStatus.DRAFT).all(),
     )
 
     def create(self, validated_data):
@@ -64,7 +66,8 @@ class GroupOrderSerializer(serializers.ModelSerializer):
             )
             for order in orders:
                 order.group_order = group_order
-            Order.objects.bulk_update(orders, ["group_order"])
+                order.status = OrderStatus.IN_PROGRESS
+            Order.objects.bulk_update(orders, ["group_order", "status"])
         return group_order
 
     def to_representation(self, instance):

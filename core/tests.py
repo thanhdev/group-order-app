@@ -2,7 +2,8 @@ from mixer.backend.django import mixer
 from rest_framework.test import APITestCase
 
 from members.models import Member
-from orders.models import Order
+from orders.enums import OrderStatus, GroupOrderStatus
+from orders.models import Order, GroupOrder
 
 
 class MemberTestCase(APITestCase):
@@ -19,7 +20,18 @@ class OrderTestCase(MemberTestCase):
     def setUp(self):
         super().setUp()
         mixer.cycle(2).blend(Order, member=self.member, is_paid=True)
-        self.unpaid_orders = mixer.cycle(3).blend(
-            Order, member=self.member, is_paid=False
+        self.group_order = mixer.blend(GroupOrder, host_member=self.member)
+        self.completed_orders = mixer.cycle(2).blend(
+            Order,
+            member=self.member,
+            status=OrderStatus.COMPLETED,
+            group_order=self.group_order,
         )
+        self.draft_orders = mixer.cycle(3).blend(Order, member=self.member)
+
         mixer.cycle(2).blend(Order, member=self.member_2, is_paid=True)
+        mixer.blend(
+            GroupOrder,
+            host_member=self.member_2,
+            status=GroupOrderStatus.COMPLETED,
+        )
