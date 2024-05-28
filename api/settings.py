@@ -76,7 +76,7 @@ APPEND_SLASH = False
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [FRONTEND_DIR],
+        "DIRS": [BASE_DIR / "static"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
