@@ -7,3 +7,4 @@ djangorestframework-simplejwt==5.3.1
 drf-spectacular==0.27.2
 mixer==7.2.2
 psycopg2-binary==2.9.9
+whitenoise==6.6.0
