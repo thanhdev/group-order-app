@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from orders.enums import OrderStatus
+from orders.enums import OrderStatus, GroupOrderStatus
 from orders.filters import OrderFilter, GroupOrderFilter
 from orders.models import Order, GroupOrder
 from orders.serializers import (
@@ -77,6 +77,14 @@ class GroupOrderViewSet(
             member = self.request.user
             queryset = queryset.filter(host_member=member)
         return queryset
+
+    def perform_destroy(self, instance):
+        instance.status = GroupOrderStatus.CANCELLED
+        instance.save()
+        orders = instance.orders.all()
+        for order in orders:
+            order.group_order = None
+        Order.objects.bulk_update(orders, ["group_order"])
 
     @extend_schema(request=CompleteGroupOrderSerializer)
     @action(detail=True, methods=["put"])

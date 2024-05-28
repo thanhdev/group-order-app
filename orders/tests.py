@@ -141,9 +141,8 @@ class TestGroupOrderViewSet(OrderTestCase):
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, 204)
-        self.assertFalse(
-            GroupOrder.objects.filter(id=self.group_order.id).exists()
-        )
+        self.group_order.refresh_from_db()
+        self.assertEqual(self.group_order.status, GroupOrderStatus.CANCELLED)
         self.assertEqual(
             Order.objects.filter(group_order=self.group_order).count(), 0
         )
