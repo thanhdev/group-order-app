@@ -19,4 +19,4 @@ class MemberSerializer(serializers.ModelSerializer):
             "name",
             "password",
         )
-        extra_kwargs = {"password": {"write_only": True, "required": True}}
+        extra_kwargs = {"password": {"write_only": True}}

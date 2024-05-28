@@ -44,17 +44,10 @@ class OrderSerializer(serializers.ModelSerializer):
             "ordered_by",
             "created_at",
         )
-        extra_kwargs = {
-            "group_order": {"read_only": True},
-            "is_paid": {"read_only": True},
-        }
 
 
 class GroupOrderSerializer(serializers.ModelSerializer):
     host_member = MemberSerializer(read_only=True)
-    status = serializers.ChoiceField(
-        read_only=True, choices=GroupOrderStatus.choices
-    )
     orders = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Order.objects.filter(status=OrderStatus.DRAFT).all(),
@@ -84,12 +77,6 @@ class GroupOrderSerializer(serializers.ModelSerializer):
             "id",
             "host_member",
             "orders",
-            "actual_amount",
-            "status",
-            "created_at",
-        )
-        read_ony_fields = (
-            "host_member",
             "actual_amount",
             "status",
             "created_at",

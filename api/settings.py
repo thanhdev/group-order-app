@@ -145,6 +145,7 @@ REST_FRAMEWORK = {
     ),
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "SCHEMA_COERCE_PATH_PK": False,
 }
 
 # Simple JWT

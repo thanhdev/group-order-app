@@ -4,20 +4,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='grouporder',
-            name='status',
-            field=models.CharField(choices=[('in_progress', 'In Progress'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='in_progress', max_length=50),
+            model_name="grouporder",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("in_progress", "In Progress"),
+                    ("completed", "Completed"),
+                    ("cancelled", "Cancelled"),
+                ],
+                default="in_progress",
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('draft', 'Draft'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='draft', max_length=50),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Draft"),
+                    ("in_progress", "In Progress"),
+                    ("completed", "Completed"),
+                    ("cancelled", "Cancelled"),
+                ],
+                default="draft",
+                max_length=50,
+            ),
         ),
     ]

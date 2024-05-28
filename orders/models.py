@@ -6,15 +6,19 @@ from orders.enums import GroupOrderStatus, OrderStatus
 
 class GroupOrder(models.Model):
     host_member = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="hosted_group_orders"
+        Member,
+        on_delete=models.CASCADE,
+        related_name="hosted_group_orders",
+        editable=False,
     )
     actual_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
+        max_digits=10, decimal_places=2, null=True, blank=True, editable=False
     )
     status = models.CharField(
         max_length=50,
         choices=GroupOrderStatus.choices,
         default=GroupOrderStatus.IN_PROGRESS,
+        editable=False,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -34,7 +38,7 @@ class OrderItem(models.Model):
 
 class Order(models.Model):
     member = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="orders"
+        Member, on_delete=models.CASCADE, related_name="orders", editable=False
     )
     group_order = models.ForeignKey(
         GroupOrder,
@@ -42,13 +46,16 @@ class Order(models.Model):
         related_name="orders",
         null=True,
         blank=True,
+        editable=False,  # set when the group_order is created
     )
     status = models.CharField(
         max_length=50,
         choices=OrderStatus.choices,
         default=OrderStatus.DRAFT,
+        editable=False,
     )
-    is_paid = models.BooleanField(default=False)
+    # set to True when the order is paid
+    is_paid = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def pay(self):

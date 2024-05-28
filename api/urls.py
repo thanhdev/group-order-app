@@ -36,7 +36,7 @@ router.register(r"group-orders", GroupOrderViewSet, basename="group-orders")
 
 urlpatterns = (
     [
-        path("admin", admin.site.urls),
+        path("admin/", admin.site.urls),
         path("api/", include(router.urls)),
         path("api/schema", SpectacularAPIView.as_view(), name="schema"),
         path(
@@ -57,8 +57,6 @@ urlpatterns = (
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     + [
-        re_path(
-            r"^(?:.*)$", TemplateView.as_view(template_name="index.csr.html")
-        ),
+        re_path(r"^.*$", TemplateView.as_view(template_name="index.csr.html")),
     ]
 )
