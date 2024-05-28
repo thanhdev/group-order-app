@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from members.serializers import MemberSerializer
-from orders.enums import OrderStatus
+from orders.enums import OrderStatus, GroupOrderStatus
 from orders.models import OrderItem, Order, GroupOrder
 
 
@@ -52,6 +52,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class GroupOrderSerializer(serializers.ModelSerializer):
     host_member = MemberSerializer(read_only=True)
+    status = serializers.ChoiceField(
+        read_only=True, choices=GroupOrderStatus.choices
+    )
     orders = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Order.objects.filter(status=OrderStatus.DRAFT).all(),
@@ -91,3 +94,31 @@ class GroupOrderSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         )
+
+
+class CompleteGroupOrderSerializer(serializers.Serializer):
+    orders = serializers.PrimaryKeyRelatedField(
+        many=True,
+        allow_empty=True,
+        queryset=Order.objects.all(),
+    )
+    actual_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields["orders"].queryset = self.instance.orders.all()
+
+    def save(self, **kwargs):
+        to_complete_orders = self.validated_data.get("orders", [])
+        with transaction.atomic():
+            all_orders = self.instance.orders.all()
+            for order in all_orders:
+                if order not in to_complete_orders:
+                    order.status = OrderStatus.CANCELLED
+                else:
+                    order.status = OrderStatus.COMPLETED
+            Order.objects.bulk_update(all_orders, ["status"])
+            self.instance.status = GroupOrderStatus.COMPLETED
+            self.instance.actual_amount = self.validated_data["actual_amount"]
+            self.instance.save()

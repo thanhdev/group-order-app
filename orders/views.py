@@ -14,7 +14,11 @@ from rest_framework.viewsets import GenericViewSet
 from orders.enums import OrderStatus
 from orders.filters import OrderFilter, GroupOrderFilter
 from orders.models import Order, GroupOrder
-from orders.serializers import OrderSerializer, GroupOrderSerializer
+from orders.serializers import (
+    OrderSerializer,
+    GroupOrderSerializer,
+    CompleteGroupOrderSerializer,
+)
 
 
 class OrderViewSet(
@@ -37,7 +41,7 @@ class OrderViewSet(
 
     @extend_schema(request=None)
     @action(detail=True, methods=["put"])
-    def pay(self, request, pk=None):
+    def pay(self, request, **kwargs):
         """
         Pay for an order. Only the host member of a group order can pay for it.
         """
@@ -73,3 +77,26 @@ class GroupOrderViewSet(
             member = self.request.user
             queryset = queryset.filter(host_member=member)
         return queryset
+
+    @extend_schema(request=CompleteGroupOrderSerializer)
+    @action(detail=True, methods=["put"])
+    def complete(self, request, **kwargs):
+        """
+        Complete a group order. Only the host member can complete it.
+        """
+        group_order = self.get_object()
+        if group_order.host_member != request.user:
+            raise PermissionDenied(
+                {
+                    "detail": "You do not have permission to complete this "
+                    "group order."
+                }
+            )
+
+        serializer = CompleteGroupOrderSerializer(
+            instance=group_order, data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(self.get_serializer(group_order).data)

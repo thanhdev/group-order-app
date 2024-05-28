@@ -1,7 +1,7 @@
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import OrderTestCase
-from orders.enums import GroupOrderStatus
+from orders.enums import GroupOrderStatus, OrderStatus
 from orders.models import Order, GroupOrder
 
 
@@ -146,4 +146,37 @@ class TestGroupOrderViewSet(OrderTestCase):
         )
         self.assertEqual(
             Order.objects.filter(group_order=self.group_order).count(), 0
+        )
+
+    def test_complete(self):
+        group_order = self.group_order
+        url = reverse_lazy(
+            "group-orders-complete", kwargs={"pk": group_order.id}
+        )
+        data = {
+            "orders": [self.completed_orders[0].id],
+            "actual_amount": 1,
+        }
+
+        # not host
+        self.client.force_authenticate(self.member_2)
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 404)
+
+        # valid
+        self.client.force_authenticate(self.member)
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], GroupOrderStatus.COMPLETED)
+        group_order.refresh_from_db()
+        self.assertEqual(group_order.actual_amount, 1)
+        self.assertEqual(group_order.status, GroupOrderStatus.COMPLETED)
+
+        self.completed_orders[0].refresh_from_db()
+        self.assertEqual(
+            self.completed_orders[0].status, OrderStatus.COMPLETED
+        )
+        self.completed_orders[1].refresh_from_db()
+        self.assertEqual(
+            self.completed_orders[1].status, OrderStatus.CANCELLED
         )
