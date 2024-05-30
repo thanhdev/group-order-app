@@ -1,4 +1,5 @@
 cd frontend
+git pull origin master
 npm install
 npm run build
 cd ..
