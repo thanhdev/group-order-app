@@ -70,3 +70,15 @@ class Order(models.Model):
     def pay(self):
         self.is_paid = True
         self.save()
+
+    @property
+    def total_cost(self):
+        return (
+            self.items.aggregate(
+                total_cost=models.Sum(
+                    models.F("unit_price") * models.F("quantity"),
+                    output_field=models.IntegerField(),
+                )
+            )["total_cost"]
+            or 0
+        )

@@ -40,6 +40,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "items",
             "group_order",
             "is_paid",
+            "total_cost",
             "status",
             "ordered_by",
             "created_at",

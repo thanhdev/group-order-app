@@ -1,8 +1,9 @@
+from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import OrderTestCase
 from orders.enums import GroupOrderStatus, OrderStatus
-from orders.models import Order, GroupOrder
+from orders.models import Order, GroupOrder, OrderItem
 
 
 class TestOrderViewSet(OrderTestCase):
@@ -43,6 +44,22 @@ class TestOrderViewSet(OrderTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
+
+    def test_retrieve(self):
+        self.client.force_authenticate(self.member)
+        order = self.draft_orders[0]
+        mixer.blend(OrderItem, order=order, name="item 1", unit_price=100)
+        mixer.blend(
+            OrderItem, order=order, name="item 2", unit_price=200, quantity=2
+        )
+        url = reverse_lazy("orders-detail", kwargs={"pk": order.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["ordered_by"]["id"], self.member.id)
+        self.assertEqual(response.data["status"], OrderStatus.DRAFT)
+        self.assertEqual(len(response.data["items"]), 2)
+        self.assertEqual(response.data["total_cost"], 500)
 
     def test_pay(self):
         self.client.force_authenticate(self.member)

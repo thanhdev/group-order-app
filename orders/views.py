@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from orders.enums import OrderStatus, GroupOrderStatus
+from orders.enums import OrderStatus
 from orders.filters import OrderFilter, GroupOrderFilter
 from orders.models import Order, GroupOrder
 from orders.serializers import (
