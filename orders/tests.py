@@ -171,7 +171,7 @@ class TestGroupOrderViewSet(OrderTestCase):
         )
         data = {
             "orders": [self.completed_orders[0].id],
-            "actual_amount": 1,
+            "discount": 0.2,
         }
 
         # not host
@@ -185,7 +185,8 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], GroupOrderStatus.COMPLETED)
         group_order.refresh_from_db()
-        self.assertEqual(group_order.actual_amount, 1)
+        # total cost of order 1: 100, discount: 0.2, actual amount: 80
+        self.assertEqual(group_order.actual_amount, 80)
         self.assertEqual(group_order.status, GroupOrderStatus.COMPLETED)
 
         self.completed_orders[0].refresh_from_db()

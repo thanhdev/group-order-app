@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 
 from members.models import Member
 from orders.enums import OrderStatus, GroupOrderStatus
-from orders.models import Order, GroupOrder
+from orders.models import Order, GroupOrder, OrderItem
 
 
 class MemberTestCase(APITestCase):
@@ -27,6 +27,8 @@ class OrderTestCase(MemberTestCase):
             status=OrderStatus.COMPLETED,
             group_order=self.group_order,
         )
+        for order in self.completed_orders:
+            mixer.blend(OrderItem, order=order, unit_price=50, quantity=2)
         self.draft_orders = mixer.cycle(3).blend(Order, member=self.member)
 
         mixer.cycle(2).blend(Order, member=self.member_2, is_paid=True)

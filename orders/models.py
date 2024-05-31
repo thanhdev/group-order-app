@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from django.db import models, transaction
 
 from members.models import Member
@@ -30,6 +32,21 @@ class GroupOrder(models.Model):
             for order in orders:
                 order.group_order = None
             Order.objects.bulk_update(orders, ["group_order"])
+
+    def complete(self, to_complete_orders: Sequence["Order"], discount: float):
+        actual_amount = 0
+        all_orders = self.orders.all()
+        with transaction.atomic():
+            for order in all_orders:
+                if order not in to_complete_orders:
+                    order.status = OrderStatus.CANCELLED
+                else:
+                    order.status = OrderStatus.COMPLETED
+                    actual_amount += order.total_cost
+            Order.objects.bulk_update(all_orders, ["status"])
+            self.status = GroupOrderStatus.COMPLETED
+            self.actual_amount = actual_amount * (1 - discount)
+            self.save()
 
 
 class OrderItem(models.Model):
