@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from members.models import Member
+from members.models import Member, Transaction
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -21,3 +21,19 @@ class MemberSerializer(serializers.ModelSerializer):
             "password",
         )
         extra_kwargs = {"password": {"write_only": True}}
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    from_member = MemberSerializer()
+    to_member = MemberSerializer()
+
+    class Meta:
+        model = Transaction
+        fields = (
+            "id",
+            "from_member",
+            "to_member",
+            "amount",
+            "type",
+            "created_at",
+        )

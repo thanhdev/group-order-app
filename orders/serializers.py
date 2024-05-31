@@ -91,7 +91,11 @@ class CompleteGroupOrderSerializer(serializers.Serializer):
         queryset=Order.objects.all(),
     )
     discount = serializers.DecimalField(
-        min_value=0., max_value=1., default=0., max_digits=5, decimal_places=2
+        min_value=0.0,
+        max_value=1.0,
+        default=0.0,
+        max_digits=5,
+        decimal_places=2,
     )
 
     def __init__(self, *args, **kwargs):

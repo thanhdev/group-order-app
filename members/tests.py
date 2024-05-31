@@ -1,8 +1,9 @@
+from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 from rest_framework.test import APITestCase
 
 from core.tests import MemberTestCase
-from members.models import Member
+from members.models import Member, Transaction
 
 
 class TestMemberViewSet(APITestCase):
@@ -17,6 +18,16 @@ class TestMemberViewSet(APITestCase):
         user = Member.objects.get(email="test@gmail.com")
         self.assertTrue(user.check_password("test"))
         self.assertTrue(user.is_active)
+
+
+class TestTransactionViewSet(MemberTestCase):
+    def test_list(self):
+        self.client.force_authenticate(self.member)
+        mixer.cycle().blend(Transaction)
+        response = self.client.get(reverse_lazy("transactions-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 5)
 
 
 class TestTokenObtainPairView(MemberTestCase):

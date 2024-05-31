@@ -24,13 +24,14 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from members.views import MemberViewSet
+from members.views import MemberViewSet, TransactionViewSet
 from orders.views import OrderViewSet, GroupOrderViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"members", MemberViewSet, basename="members")
 router.register(r"orders", OrderViewSet, basename="orders")
 router.register(r"group-orders", GroupOrderViewSet, basename="group-orders")
+router.register(r"transactions", TransactionViewSet, basename="transactions")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

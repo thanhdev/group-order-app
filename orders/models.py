@@ -3,7 +3,7 @@ from typing import Sequence
 from django.db import models, transaction
 from django.utils.functional import cached_property
 
-from members.models import Member
+from members.models import Member, Transaction
 from orders.enums import GroupOrderStatus, OrderStatus
 
 
@@ -37,6 +37,7 @@ class GroupOrder(models.Model):
     def complete(self, to_complete_orders: Sequence["Order"], discount: float):
         actual_amount = 0
         all_orders = self.orders.all()
+        transactions = []
         with transaction.atomic():
             # update order status and member balance
             for order in all_orders:
@@ -47,12 +48,17 @@ class GroupOrder(models.Model):
                     order.is_paid = True
                     total_cost = order.total_cost * (1 - discount)
                     actual_amount += total_cost
-                    order.member.balance -= total_cost
-                    self.host_member.balance += total_cost
-            members = [order.member for order in all_orders]
-            members.append(self.host_member)
-            Member.objects.bulk_update(members, ["balance"])
+                    # create transaction
+                    transactions.append(
+                        Transaction(
+                            from_member=order.member,
+                            to_member=self.host_member,
+                            amount=total_cost,
+                            type=Transaction.Type.COMPLETE_ORDER,
+                        )
+                    )
             Order.objects.bulk_update(all_orders, ["status"])
+            Transaction.objects.bulk_create(transactions)
 
             # update group order status
             self.status = GroupOrderStatus.COMPLETED

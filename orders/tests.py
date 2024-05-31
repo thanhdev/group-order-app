@@ -2,6 +2,7 @@ from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import OrderTestCase
+from members.models import Transaction
 from orders.enums import GroupOrderStatus, OrderStatus
 from orders.models import Order, GroupOrder, OrderItem
 
@@ -168,3 +169,4 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertEqual(self.member.balance, 80)
         self.member_2.refresh_from_db()
         self.assertEqual(self.member_2.balance, -80)
+        self.assertEqual(Transaction.objects.count(), 1)
