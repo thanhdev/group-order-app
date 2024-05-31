@@ -79,12 +79,7 @@ class GroupOrderViewSet(
         return queryset
 
     def perform_destroy(self, instance):
-        instance.status = GroupOrderStatus.CANCELLED
-        instance.save()
-        orders = instance.orders.all()
-        for order in orders:
-            order.group_order = None
-        Order.objects.bulk_update(orders, ["group_order"])
+        instance.cancel()
 
     @extend_schema(request=CompleteGroupOrderSerializer)
     @action(detail=True, methods=["put"])

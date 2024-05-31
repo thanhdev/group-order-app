@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 
 from members.models import Member
 from orders.enums import GroupOrderStatus, OrderStatus
@@ -21,6 +21,15 @@ class GroupOrder(models.Model):
         editable=False,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def cancel(self):
+        with transaction.atomic():
+            self.status = GroupOrderStatus.CANCELLED
+            self.save()
+            orders = self.orders.all()
+            for order in orders:
+                order.group_order = None
+            Order.objects.bulk_update(orders, ["group_order"])
 
 
 class OrderItem(models.Model):
