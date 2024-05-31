@@ -102,7 +102,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     @cached_property
-    def total_cost(self):
+    def total_cost(self) -> int:
         return (
             self.items.aggregate(
                 total_cost=models.Sum(

@@ -27,16 +27,16 @@ class OrderViewSet(
     DestroyModelMixin,
     GenericViewSet,
 ):
+    queryset = Order.objects.order_by("-created_at")
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     filterset_class = OrderFilter
 
     def get_queryset(self):
-        queryset = Order.objects.order_by("-created_at")
         if self.request.method not in SAFE_METHODS:
             member = self.request.user
-            queryset = queryset.filter(member=member)
-        return queryset
+            self.queryset = self.queryset.filter(member=member)
+        return self.queryset
 
 
 class GroupOrderViewSet(
@@ -46,16 +46,16 @@ class GroupOrderViewSet(
     DestroyModelMixin,
     GenericViewSet,
 ):
+    queryset = GroupOrder.objects.order_by("-created_at")
     serializer_class = GroupOrderSerializer
     permission_classes = [IsAuthenticated]
     filterset_class = GroupOrderFilter
 
     def get_queryset(self):
-        queryset = GroupOrder.objects.order_by("-created_at")
         if self.request.method not in SAFE_METHODS:
             member = self.request.user
-            queryset = queryset.filter(host_member=member)
-        return queryset
+            self.queryset = self.queryset.filter(host_member=member)
+        return self.queryset
 
     def perform_destroy(self, instance):
         instance.cancel()
