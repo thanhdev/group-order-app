@@ -21,13 +21,13 @@ class OrderTestCase(MemberTestCase):
         super().setUp()
         mixer.cycle(2).blend(Order, member=self.member, is_paid=True)
         self.group_order = mixer.blend(GroupOrder, host_member=self.member)
-        self.completed_orders = mixer.cycle(2).blend(
+        self.orders = mixer.cycle(2).blend(
             Order,
-            member=self.member,
-            status=OrderStatus.COMPLETED,
+            member=self.member_2,
+            status=OrderStatus.IN_PROGRESS,
             group_order=self.group_order,
         )
-        for order in self.completed_orders:
+        for order in self.orders:
             mixer.blend(OrderItem, order=order, unit_price=50, quantity=2)
         self.draft_orders = mixer.cycle(3).blend(Order, member=self.member)
 

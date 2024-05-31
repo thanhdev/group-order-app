@@ -40,10 +40,10 @@ class TestOrderViewSet(OrderTestCase):
 
         # filter by member
         response = self.client.get(
-            reverse_lazy("orders-list"), {"member": self.member_2.id}
+            reverse_lazy("orders-list"), {"member": self.member.id}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 5)
 
     def test_retrieve(self):
         self.client.force_authenticate(self.member)
@@ -60,35 +60,6 @@ class TestOrderViewSet(OrderTestCase):
         self.assertEqual(response.data["status"], OrderStatus.DRAFT)
         self.assertEqual(len(response.data["items"]), 2)
         self.assertEqual(response.data["total_cost"], 500)
-
-    def test_pay(self):
-        self.client.force_authenticate(self.member)
-        order = self.draft_orders[0]
-        url = reverse_lazy("orders-pay", kwargs={"pk": order.id})
-
-        # not ready for payment
-        response = self.client.put(url)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(
-            response.data["detail"], "This order is not ready for payment."
-        )
-
-        # ready
-        order = self.completed_orders[0]
-        url = reverse_lazy("orders-pay", kwargs={"pk": order.id})
-        response = self.client.put(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.data["is_paid"])
-
-        # not host
-        order.group_order.host_member = self.member_2
-        order.group_order.save()
-        response = self.client.put(url)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            response.data["detail"],
-            "You do not have permission to pay for this order.",
-        )
 
 
 class TestGroupOrderViewSet(OrderTestCase):
@@ -170,7 +141,7 @@ class TestGroupOrderViewSet(OrderTestCase):
             "group-orders-complete", kwargs={"pk": group_order.id}
         )
         data = {
-            "orders": [self.completed_orders[0].id],
+            "orders": [self.orders[0].id],
             "discount": 0.2,
         }
 
@@ -189,11 +160,11 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertEqual(group_order.actual_amount, 80)
         self.assertEqual(group_order.status, GroupOrderStatus.COMPLETED)
 
-        self.completed_orders[0].refresh_from_db()
-        self.assertEqual(
-            self.completed_orders[0].status, OrderStatus.COMPLETED
-        )
-        self.completed_orders[1].refresh_from_db()
-        self.assertEqual(
-            self.completed_orders[1].status, OrderStatus.CANCELLED
-        )
+        self.orders[0].refresh_from_db()
+        self.assertEqual(self.orders[0].status, OrderStatus.COMPLETED)
+        self.orders[1].refresh_from_db()
+        self.assertEqual(self.orders[1].status, OrderStatus.CANCELLED)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 80)
+        self.member_2.refresh_from_db()
+        self.assertEqual(self.member_2.balance, -80)
