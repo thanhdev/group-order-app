@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.db import transaction
 from rest_framework import serializers
 
@@ -87,18 +85,13 @@ class GroupOrderSerializer(serializers.ModelSerializer):
 
 
 class CompleteGroupOrderSerializer(serializers.Serializer):
+    instance: GroupOrder
     orders = serializers.PrimaryKeyRelatedField(
         many=True,
         allow_empty=True,
         queryset=Order.objects.all(),
     )
-    discount = serializers.DecimalField(
-        min_value=Decimal(0.0),
-        max_value=Decimal(1.0),
-        default=0.0,
-        max_digits=5,
-        decimal_places=2,
-    )
+    actual_amount = serializers.DecimalField(max_digits=10, decimal_places=1)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -107,6 +100,6 @@ class CompleteGroupOrderSerializer(serializers.Serializer):
 
     def save(self, **kwargs):
         to_complete_orders = self.validated_data.get("orders", [])
-        discount = self.validated_data.get("discount", 0)
-        self.instance.complete(to_complete_orders, discount)
+        actual_amount = self.validated_data["actual_amount"]
+        self.instance.complete(to_complete_orders, actual_amount)
         return self.instance

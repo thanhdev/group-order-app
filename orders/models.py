@@ -34,8 +34,13 @@ class GroupOrder(models.Model):
                 order.group_order = None
             Order.objects.bulk_update(orders, ["group_order"])
 
-    def complete(self, to_complete_orders: Sequence["Order"], discount: float):
-        actual_amount = 0
+    def complete(
+        self, to_complete_orders: Sequence["Order"], actual_amount: float
+    ):
+        # calculate discount rate
+        total_cost = sum(order.total_cost for order in to_complete_orders)
+        discount_rate = actual_amount / total_cost
+
         all_orders = self.orders.all()
         transactions = []
         with transaction.atomic():
@@ -46,14 +51,13 @@ class GroupOrder(models.Model):
                 else:
                     order.status = OrderStatus.COMPLETED
                     order.is_paid = True
-                    total_cost = order.total_cost * (1 - discount)
-                    actual_amount += total_cost
+                    actual_cost = order.total_cost * discount_rate
                     # create transaction
                     transactions.append(
                         Transaction(
                             from_member=order.member,
                             to_member=self.host_member,
-                            amount=total_cost,
+                            amount=actual_cost,
                             type=Transaction.Type.COMPLETE_ORDER,
                         )
                     )

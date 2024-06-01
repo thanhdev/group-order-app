@@ -143,7 +143,7 @@ class TestGroupOrderViewSet(OrderTestCase):
         )
         data = {
             "orders": [self.orders[0].id],
-            "discount": 0.2,
+            "actual_amount": 80,
         }
 
         # not host
