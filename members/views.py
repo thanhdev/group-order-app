@@ -35,8 +35,8 @@ class MemberViewSet(
         return Response(serializer.data)
 
 
-class TransactionViewSet(ReadOnlyModelViewSet):
-    queryset = Transaction.objects.all()
+class TransactionViewSet(CreateModelMixin, ReadOnlyModelViewSet):
+    queryset = Transaction.objects.all().order_by("-created_at")
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
-    filterset_fields = ["from_member", "to_member"]
+    filterset_fields = ["from_member", "to_member", "type"]

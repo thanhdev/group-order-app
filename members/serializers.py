@@ -24,8 +24,27 @@ class MemberSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    from_member = MemberSerializer()
-    to_member = MemberSerializer()
+    from_member = MemberSerializer(read_only=True)
+
+    def validate_amount(self, value):
+        user = self.context["request"].user
+        if user.balance < value:
+            raise serializers.ValidationError("Insufficient balance")
+        return value
+
+    def create(self, validated_data):
+        from_member = self.context["request"].user
+        transaction = Transaction.objects.create(
+            from_member=from_member,
+            type=Transaction.Type.TRANSFER,
+            **validated_data,
+        )
+        return transaction
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["to_member"] = MemberSerializer(instance.to_member).data
+        return data
 
     class Meta:
         model = Transaction
@@ -37,3 +56,4 @@ class TransactionSerializer(serializers.ModelSerializer):
             "type",
             "created_at",
         )
+        read_only_fields = ("type",)

@@ -29,6 +29,30 @@ class TestTransactionViewSet(MemberTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 5)
 
+    def test_create(self):
+        self.client.force_authenticate(self.member)
+        data = {"to_member": self.member_2.id, "amount": 100}
+
+        # Insufficient balance
+        response = self.client.post(reverse_lazy("transactions-list"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["amount"], ["Insufficient balance"])
+
+        # Successful transfer
+        self.member.balance = 1000
+        self.member.save()
+        response = self.client.post(reverse_lazy("transactions-list"), data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["from_member"]["id"], self.member.id)
+        self.assertEqual(response.data["to_member"]["id"], self.member_2.id)
+        self.assertEqual(response.data["amount"], "100.00")
+        self.assertEqual(response.data["type"], Transaction.Type.TRANSFER)
+
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 900)
+        self.member_2.refresh_from_db()
+        self.assertEqual(self.member_2.balance, 100)
+
 
 class TestTokenObtainPairView(MemberTestCase):
     def test_login(self):

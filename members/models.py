@@ -16,9 +16,9 @@ class Member(AbstractUser):
 
 class TransactionManager(models.Manager):
     def create(self, **kwargs):
-        from_member: Member = kwargs.get("from_member")
-        to_member: Member = kwargs.get("to_member")
-        amount: float = kwargs.get("amount")
+        from_member: Member = kwargs.pop("from_member")
+        to_member: Member = kwargs.pop("to_member")
+        amount: float = kwargs.pop("amount")
 
         with transaction.atomic():
             from_member.balance -= amount
