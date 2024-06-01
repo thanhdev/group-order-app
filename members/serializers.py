@@ -45,6 +45,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         return transaction
 
     def to_representation(self, instance):
+        instance.refresh_from_db()
         data = super().to_representation(instance)
         data["to_member"] = MemberSerializer(instance.to_member).data
         return data

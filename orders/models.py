@@ -1,3 +1,4 @@
+from decimal import InvalidOperation
 from typing import Sequence
 
 from django.core.validators import MinValueValidator
@@ -16,7 +17,12 @@ class GroupOrder(models.Model):
         editable=False,
     )
     actual_amount = models.DecimalField(
-        max_digits=11, decimal_places=1, null=True, blank=True, editable=False
+        max_digits=11,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        editable=False,
+        validators=[MinValueValidator(0)],
     )
     status = models.CharField(
         max_length=50,
@@ -40,7 +46,10 @@ class GroupOrder(models.Model):
     ):
         # calculate discount rate
         total_cost = sum(order.total_cost for order in to_complete_orders)
-        discount_rate = actual_amount / total_cost
+        try:
+            discount_rate = actual_amount / total_cost
+        except (ZeroDivisionError, InvalidOperation):
+            discount_rate = 1
 
         all_orders = self.orders.all()
         transactions = []

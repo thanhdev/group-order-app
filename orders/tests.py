@@ -170,3 +170,50 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.member_2.refresh_from_db()
         self.assertEqual(self.member_2.balance, -80)
         self.assertEqual(Transaction.objects.count(), 1)
+
+    def test_complete_self_hosted_order(self):
+        group_order = mixer.blend(GroupOrder, host_member=self.member)
+        order = mixer.blend(
+            Order,
+            group_order=group_order,
+            member=self.member,
+            status=OrderStatus.IN_PROGRESS,
+        )
+        mixer.blend(OrderItem, order=order, unit_price=100, quantity=1)
+
+        url = reverse_lazy(
+            "group-orders-complete", kwargs={"pk": group_order.id}
+        )
+        data = {
+            "orders": [order.id],
+            "actual_amount": 80,
+        }
+
+        self.client.force_authenticate(self.member)
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], GroupOrderStatus.COMPLETED)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 0)
+        self.assertEqual(Transaction.objects.count(), 1)
+        transaction = Transaction.objects.last()
+        self.assertEqual(transaction.amount, 80)
+        self.assertEqual(transaction.from_member, self.member)
+        self.assertEqual(transaction.to_member, self.member)
+        self.assertEqual(transaction.type, Transaction.Type.COMPLETE_ORDER)
+
+    def test_complete_empty_orders(self):
+        group_order = self.group_order
+        url = reverse_lazy(
+            "group-orders-complete", kwargs={"pk": group_order.id}
+        )
+        data = {
+            "orders": [],
+            "actual_amount": 0,
+        }
+
+        # valid
+        self.client.force_authenticate(self.member)
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], GroupOrderStatus.COMPLETED)

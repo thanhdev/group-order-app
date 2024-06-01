@@ -68,6 +68,7 @@ class GroupOrderSerializer(serializers.ModelSerializer):
         return group_order
 
     def to_representation(self, instance):
+        instance.refresh_from_db()
         data = super().to_representation(instance)
         data["orders"] = OrderSerializer(instance.orders.all(), many=True).data
         return data
@@ -92,7 +93,6 @@ class CompleteGroupOrderSerializer(serializers.Serializer):
     instance: GroupOrder
     orders = serializers.PrimaryKeyRelatedField(
         many=True,
-        allow_empty=True,
         queryset=Order.objects.all(),
     )
     actual_amount = serializers.DecimalField(max_digits=10, decimal_places=1)

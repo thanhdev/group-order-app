@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
+from django.db.models import F
 
 
 class Member(AbstractUser):
@@ -21,8 +22,8 @@ class TransactionManager(models.Manager):
         amount: float = kwargs.pop("amount")
 
         with transaction.atomic():
-            from_member.balance -= amount
-            to_member.balance += amount
+            from_member.balance = F("balance") - amount
+            to_member.balance = F("balance") + amount
             Member.objects.bulk_update([from_member, to_member], ["balance"])
             return super().create(
                 from_member=from_member,
@@ -43,8 +44,10 @@ class TransactionManager(models.Manager):
         with transaction.atomic():
             _members = []
             for obj in objs:
-                obj.from_member.balance -= obj.amount
-                obj.to_member.balance += obj.amount
+                if obj.from_member == obj.to_member:
+                    continue
+                obj.from_member.balance = F("balance") - obj.amount
+                obj.to_member.balance = F("balance") + obj.amount
                 _members.append(obj.from_member)
                 _members.append(obj.to_member)
             Member.objects.bulk_update(_members, ["balance"])
