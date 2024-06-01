@@ -20,7 +20,10 @@ class MemberSerializer(serializers.ModelSerializer):
             "balance",
             "password",
         )
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "balance": {"read_only": True},
+        }
 
 
 class TransactionSerializer(serializers.ModelSerializer):
