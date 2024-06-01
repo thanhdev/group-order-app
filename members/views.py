@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -9,7 +10,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from members.models import Member, Transaction
-from members.serializers import MemberSerializer, TransactionSerializer
+from members.serializers import (
+    MemberSerializer,
+    TransactionSerializer,
+    TransactionResponseSerializer,
+)
 
 
 class MemberViewSet(
@@ -40,3 +45,12 @@ class TransactionViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
     filterset_fields = ["from_member", "to_member", "type"]
+
+    @extend_schema(
+        responses={201: TransactionResponseSerializer},
+    )
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new transaction.
+        """
+        return super().create(request, *args, **kwargs)

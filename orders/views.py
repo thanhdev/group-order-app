@@ -17,6 +17,7 @@ from orders.serializers import (
     OrderSerializer,
     GroupOrderSerializer,
     CompleteGroupOrderSerializer,
+    GroupOrderResponseSerializer,
 )
 
 
@@ -59,6 +60,13 @@ class GroupOrderViewSet(
 
     def perform_destroy(self, instance):
         instance.cancel()
+
+    @extend_schema(responses={201: GroupOrderResponseSerializer})
+    def create(self, request, *args, **kwargs):
+        """
+        Create a group order.
+        """
+        return super().create(request, *args, **kwargs)
 
     @extend_schema(request=CompleteGroupOrderSerializer)
     @action(detail=True, methods=["put"])

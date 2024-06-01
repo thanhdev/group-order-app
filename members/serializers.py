@@ -60,3 +60,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = ("type",)
+
+
+class TransactionResponseSerializer(TransactionSerializer):
+    to_member = MemberSerializer(read_only=True)

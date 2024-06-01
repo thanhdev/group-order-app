@@ -84,6 +84,10 @@ class GroupOrderSerializer(serializers.ModelSerializer):
         )
 
 
+class GroupOrderResponseSerializer(GroupOrderSerializer):
+    orders = OrderSerializer(many=True)
+
+
 class CompleteGroupOrderSerializer(serializers.Serializer):
     instance: GroupOrder
     orders = serializers.PrimaryKeyRelatedField(
