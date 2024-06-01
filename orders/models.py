@@ -1,5 +1,6 @@
 from typing import Sequence
 
+from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils.functional import cached_property
 
@@ -15,7 +16,7 @@ class GroupOrder(models.Model):
         editable=False,
     )
     actual_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True, editable=False
+        max_digits=11, decimal_places=1, null=True, blank=True, editable=False
     )
     status = models.CharField(
         max_length=50,
@@ -75,12 +76,11 @@ class OrderItem(models.Model):
         "Order", related_name="items", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255)
-    unit_price = models.PositiveIntegerField()
+    unit_price = models.DecimalField(
+        max_digits=11, decimal_places=1, validators=[MinValueValidator(0)]
+    )
     quantity = models.PositiveIntegerField(default=1)
     note = models.TextField(blank=True, null=True)
-
-    def get_cost(self):
-        return self.unit_price * self.quantity
 
 
 class Order(models.Model):
