@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
 from django.db.models import F
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 
 class Member(AbstractUser):
@@ -83,3 +85,15 @@ class Transaction(models.Model):
         max_length=50, choices=Type.choices, editable=False
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+@receiver(post_delete, sender=Transaction)
+def refund_transaction(sender, instance, **kwargs):
+    if instance.from_member == instance.to_member:
+        return
+    with transaction.atomic():
+        instance.from_member.balance = F("balance") + instance.amount
+        instance.to_member.balance = F("balance") - instance.amount
+        Member.objects.bulk_update(
+            [instance.from_member, instance.to_member], ["balance"]
+        )

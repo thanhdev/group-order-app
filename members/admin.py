@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
 
+from core.admins import ReadOnlyModelAdmin
 from members.models import Member, Transaction
 
 
@@ -13,7 +14,7 @@ class MemberAdmin(UserAdmin):
     ordering = ("email",)
     fieldsets = (
         (None, {"fields": ("username", "password")}),
-        (_("Personal info"), {"fields": ("name", "email")}),
+        (_("Personal info"), {"fields": ("name", "email", "balance")}),
         (
             _("Permissions"),
             {
@@ -31,7 +32,7 @@ class MemberAdmin(UserAdmin):
 
 
 @admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(ReadOnlyModelAdmin):
     model = Transaction
     list_display = (
         "id",
