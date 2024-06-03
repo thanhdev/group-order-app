@@ -1,4 +1,4 @@
 {
   "buildCommand": "cd group-order && git pull origin gh-pages && cd .. && python3 manage.py collectstatic --no-input && python3 manage.py migrate --no-input",
-  "outputDirectory": null
+  "outputDirectory": ""
 }
