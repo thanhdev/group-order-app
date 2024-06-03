@@ -19,7 +19,7 @@ import environ  # noqa
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 env.read_env(str(BASE_DIR / ".env"))
-FRONTEND_DIR = BASE_DIR / "frontend/dist/group-order/browser"
+FRONTEND_DIR = BASE_DIR / "frontend"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
