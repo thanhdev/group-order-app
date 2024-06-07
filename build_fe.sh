@@ -1,7 +1,5 @@
-cd frontend
-git pull origin master
-npm install
-npm run build
+cd group-order
+git pull origin gh-pages
 cd ..
 python manage.py collectstatic --noinput
 pre-commit run -a
