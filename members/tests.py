@@ -78,3 +78,31 @@ class TestTokenObtainPairView(MemberTestCase):
             response.data["detail"],
             "No active account found with the given credentials",
         )
+
+
+class TestMemberProfileView(MemberTestCase):
+    url = reverse_lazy("members-me")
+
+    def test_get(self):
+        self.client.force_authenticate(self.member)
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], self.member.id)
+        self.assertEqual(response.data["email"], self.member.email)
+        self.assertEqual(response.data["name"], self.member.name)
+        self.assertEqual(response.data["balance"], "0.00")
+
+    def test_patch(self):
+        self.client.force_authenticate(self.member)
+        data = {"name": "new name", "password": "new password"}
+        response = self.client.patch(self.url, data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], self.member.id)
+        self.assertEqual(response.data["email"], self.member.email)
+        self.assertEqual(response.data["name"], "new name")
+        self.assertEqual(response.data["balance"], "0.00")
+
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.check_password("new password"))

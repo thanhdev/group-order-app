@@ -24,7 +24,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from members.views import MemberViewSet, TransactionViewSet
+from members.views import MemberViewSet, TransactionViewSet, MemberMeView
 from orders.views import OrderViewSet, GroupOrderViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -35,7 +35,6 @@ router.register(r"transactions", TransactionViewSet, basename="transactions")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs",
@@ -52,6 +51,12 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name="token_refresh",
     ),
+    path(
+        "api/members/me",
+        MemberMeView.as_view(),
+        name="members-me",
+    ),
+    path("api/", include(router.urls)),
 ]
 
 urlpatterns += [

@@ -1,5 +1,4 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
@@ -7,6 +6,7 @@ from rest_framework.mixins import (
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from members.models import Member, Transaction
@@ -14,6 +14,7 @@ from members.serializers import (
     MemberSerializer,
     TransactionSerializer,
     TransactionResponseSerializer,
+    MemberUpdateSerializer,
 )
 
 
@@ -29,15 +30,28 @@ class MemberViewSet(
         """
         return super().create(request, *args, **kwargs)
 
-    @action(
-        detail=False, methods=["get"], permission_classes=[IsAuthenticated]
-    )
-    def me(self, request, *args, **kwargs):
+
+class MemberMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses=MemberSerializer)
+    def get(self, request, *args, **kwargs):
         """
         Get the authenticated member's profile.
         """
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        return Response(MemberSerializer(request.user).data)
+
+    @extend_schema(request=MemberUpdateSerializer, responses=MemberSerializer)
+    def patch(self, request, *args, **kwargs):
+        """
+        Update the authenticated member's profile.
+        """
+        serializer = MemberUpdateSerializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(MemberSerializer(user).data)
 
 
 class TransactionViewSet(CreateModelMixin, ReadOnlyModelViewSet):
