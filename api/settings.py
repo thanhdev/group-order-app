@@ -136,6 +136,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 # REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "core.auth.Auth0UserBackend",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
@@ -162,3 +163,8 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+# Auth0
+AUTH0_DOMAIN = env("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = env("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
