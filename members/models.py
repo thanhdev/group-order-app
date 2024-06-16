@@ -25,8 +25,9 @@ class TransactionManager(models.Manager):
 
         with transaction.atomic():
             from_member.balance = F("balance") - amount
+            from_member.save()
             to_member.balance = F("balance") + amount
-            Member.objects.bulk_update([from_member, to_member], ["balance"])
+            to_member.save()
             return super().create(
                 from_member=from_member,
                 to_member=to_member,
@@ -44,15 +45,12 @@ class TransactionManager(models.Manager):
         unique_fields=None,
     ):
         with transaction.atomic():
-            _members = []
             for obj in objs:
-                if obj.from_member == obj.to_member:
-                    continue
                 obj.from_member.balance = F("balance") - obj.amount
+                obj.from_member.save()
                 obj.to_member.balance = F("balance") + obj.amount
-                _members.append(obj.from_member)
-                _members.append(obj.to_member)
-            Member.objects.bulk_update(_members, ["balance"])
+                obj.to_member.save()
+
             return super().bulk_create(
                 objs,
                 batch_size=batch_size,

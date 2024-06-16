@@ -2,7 +2,7 @@ from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import OrderTestCase
-from members.models import Transaction
+from members.models import Transaction, Member
 from orders.enums import GroupOrderStatus, OrderStatus
 from orders.models import Order, GroupOrder, OrderItem
 
@@ -170,6 +170,57 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.member_2.refresh_from_db()
         self.assertEqual(self.member_2.balance, -80)
         self.assertEqual(Transaction.objects.count(), 1)
+
+    def test_complete_multiple_orders(self):
+        group_order = mixer.blend(GroupOrder, host_member=self.member)
+        members = mixer.cycle(3).blend(Member)
+        for member in members:
+            mixer.blend(
+                OrderItem,
+                order__member=member,
+                order__group_order=group_order,
+                status=OrderStatus.IN_PROGRESS,
+                unit_price=100,
+                quantity=2,
+            )
+        # Include host in the group order
+        mixer.blend(
+            OrderItem,
+            order__member=self.member,
+            order__group_order=group_order,
+            status=OrderStatus.IN_PROGRESS,
+            unit_price=100,
+            quantity=2,
+        )
+        orders = group_order.orders.all()
+        url = reverse_lazy(
+            "group-orders-complete", kwargs={"pk": group_order.id}
+        )
+        data = {
+            "orders": [order.id for order in orders],
+            "actual_amount": 400,
+        }
+
+        self.client.force_authenticate(self.member)
+        response = self.client.put(url, data)
+
+        # All orders are completed
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], GroupOrderStatus.COMPLETED)
+        group_order.refresh_from_db()
+        self.assertEqual(group_order.actual_amount, 400)
+        self.assertEqual(group_order.status, GroupOrderStatus.COMPLETED)
+        for order in orders:
+            order.refresh_from_db()
+            self.assertEqual(order.status, OrderStatus.COMPLETED)
+
+        # Check balances and transactions
+        self.assertEqual(Transaction.objects.count(), 4)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 300)
+        for member in members:
+            member.refresh_from_db()
+            self.assertEqual(member.balance, -100)
 
     def test_complete_self_hosted_order(self):
         group_order = mixer.blend(GroupOrder, host_member=self.member)
