@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
 from core.admins import ReadOnlyModelAdmin
@@ -9,12 +10,23 @@ from members.models import Member, Transaction
 @admin.register(Member)
 class MemberAdmin(UserAdmin):
     model = Member
-    list_display = ("id", "email", "name", "is_staff")
+    list_display = ("id", "email", "name", "is_staff", "member_image")
     search_fields = ("email", "name")
     ordering = ("email",)
     fieldsets = (
         (None, {"fields": ("username", "password")}),
-        (_("Personal info"), {"fields": ("name", "email", "balance")}),
+        (
+            _("Personal info"),
+            {
+                "fields": (
+                    "name",
+                    "email",
+                    "balance",
+                    "picture",
+                    "member_image",
+                )
+            },
+        ),
         (
             _("Permissions"),
             {
@@ -29,6 +41,16 @@ class MemberAdmin(UserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
+    readonly_fields = ("member_image",)
+
+    def member_image(self, obj):
+        if not obj.picture:
+            return ""
+        return format_html(
+            '<img src="{}" width="50" height="50" />', obj.picture
+        )
+
+    member_image.short_description = "Picture"
 
 
 @admin.register(Transaction)

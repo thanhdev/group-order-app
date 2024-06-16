@@ -24,7 +24,14 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from members.views import MemberViewSet, TransactionViewSet, MemberMeView
+from members.views import (
+    MemberViewSet,
+    TransactionViewSet,
+    MemberMeView,
+    login,
+    logout,
+    callback,
+)
 from orders.views import OrderViewSet, GroupOrderViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -35,12 +42,18 @@ router.register(r"transactions", TransactionViewSet, basename="transactions")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Auth0
+    path("auth0/login", login, name="oauth0-login"),
+    path("auth0/logout", logout, name="oauth0-logout"),
+    path("auth0/callback", callback, name="oauth0-callback"),
+    # Docs
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
+    # JWT
     path(
         "api/token",
         TokenObtainPairView.as_view(),
@@ -51,6 +64,7 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name="token_refresh",
     ),
+    # APIs
     path(
         "api/members/me",
         MemberMeView.as_view(),
@@ -60,5 +74,9 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    re_path(r"^.*$", TemplateView.as_view(template_name="index.csr.html")),
+    re_path(
+        r"^.*$",
+        TemplateView.as_view(template_name="index.csr.html"),
+        name="index",
+    ),
 ]
