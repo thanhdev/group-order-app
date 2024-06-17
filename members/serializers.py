@@ -18,6 +18,7 @@ class MemberSerializer(serializers.ModelSerializer):
             "email",
             "name",
             "balance",
+            "picture",
             "password",
         )
         extra_kwargs = {
@@ -27,20 +28,9 @@ class MemberSerializer(serializers.ModelSerializer):
 
 
 class MemberUpdateSerializer(serializers.ModelSerializer):
-    def save(self, **kwargs):
-        password = self.validated_data.pop("password", None)
-        user = super().save(**kwargs)
-        if password:
-            user.set_password(password)
-            user.save()
-        return user
-
     class Meta:
         model = Member
-        fields = (
-            "name",
-            "password",
-        )
+        fields = ("name", "picture")
 
 
 class TransactionSerializer(serializers.ModelSerializer):

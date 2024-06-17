@@ -54,32 +54,6 @@ class TestTransactionViewSet(MemberTestCase):
         self.assertEqual(self.member_2.balance, 100)
 
 
-class TestTokenObtainPairView(MemberTestCase):
-    def test_login(self):
-        data = {"email": self.member.email, "password": "test"}
-        response = self.client.post(reverse_lazy("token_obtain_pair"), data)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue("access" in response.data)
-        self.assertTrue("refresh" in response.data)
-
-        access = response.data["access"]
-        response = self.client.get(
-            reverse_lazy("members-me"), HTTP_AUTHORIZATION=f"Bearer {access}"
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_login_invalid(self):
-        data = {"email": self.member.email, "password": "wrong"}
-        response = self.client.post(reverse_lazy("token_obtain_pair"), data)
-
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(
-            response.data["detail"],
-            "No active account found with the given credentials",
-        )
-
-
 class TestMemberProfileView(MemberTestCase):
     url = reverse_lazy("members-me")
 
@@ -95,14 +69,12 @@ class TestMemberProfileView(MemberTestCase):
 
     def test_patch(self):
         self.client.force_authenticate(self.member)
-        data = {"name": "new name", "password": "new password"}
+        data = {"name": "new name", "picture": "https://new-picture.com"}
         response = self.client.patch(self.url, data)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], self.member.id)
         self.assertEqual(response.data["email"], self.member.email)
         self.assertEqual(response.data["name"], "new name")
+        self.assertEqual(response.data["picture"], "https://new-picture.com")
         self.assertEqual(response.data["balance"], "0.00")
-
-        self.member.refresh_from_db()
-        self.assertTrue(self.member.check_password("new password"))

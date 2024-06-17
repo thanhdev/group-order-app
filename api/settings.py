@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-from datetime import timedelta
 from pathlib import Path
 
 import environ  # noqa
@@ -19,6 +18,7 @@ import environ  # noqa
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 env.read_env(str(BASE_DIR / ".env"))
+# FRONTEND_DIR = BASE_DIR / "group-order/dist/group-order/browser"
 FRONTEND_DIR = BASE_DIR / "group-order"
 
 # Quick-start development settings - unsuitable for production
@@ -30,7 +30,7 @@ SECRET_KEY = env(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".vercel.app"]
 
@@ -65,8 +65,14 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.RemoteUserMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "django.contrib.auth.backends.RemoteUserBackend",
 ]
 
 ROOT_URLCONF = "api.urls"
@@ -136,8 +142,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 # REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "core.auth.Auth0UserBackend",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "core.auth.JSONWebTokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser",),
@@ -147,13 +154,6 @@ REST_FRAMEWORK = {
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "SCHEMA_COERCE_PATH_PK": False,
-}
-
-# Simple JWT
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "UPDATE_LAST_LOGIN": True,
 }
 
 # drf-spectacular
@@ -168,3 +168,15 @@ SPECTACULAR_SETTINGS = {
 AUTH0_DOMAIN = env("AUTH0_DOMAIN")
 AUTH0_CLIENT_ID = env("AUTH0_CLIENT_ID")
 AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
+AUTH0_AUDIENCE = f"https://{AUTH0_DOMAIN}/api/v2/"
+AUTH0_ISSUER = f"https://{AUTH0_DOMAIN}/"
+
+# JWT
+JWT_AUTH = {
+    "JWT_PAYLOAD_GET_USERNAME_HANDLER": "core.auth.jwt_get_username_from_payload_handler",  # noqa
+    "JWT_DECODE_HANDLER": "core.auth.jwt_decode_token",
+    "JWT_ALGORITHM": "RS256",
+    "JWT_AUDIENCE": AUTH0_AUDIENCE,
+    "JWT_ISSUER": AUTH0_ISSUER,
+    "JWT_AUTH_HEADER_PREFIX": "Bearer",
+}
