@@ -1,105 +1,90 @@
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fdjango&demo-title=Django%20%2B%20Vercel&demo-description=Use%20Django%204%20on%20Vercel%20with%20Serverless%20Functions%20using%20the%20Python%20Runtime.&demo-url=https%3A%2F%2Fdjango-template.vercel.app%2F&demo-image=https://assets.vercel.com/image/upload/v1669994241/random/django.png)
+# Group Ordering Application
 
-# Django + Vercel
+## Overview
 
-This example shows how to use Django 4 on Vercel with Serverless Functions using the [Python Runtime](https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/python).
+This project is an application designed to facilitate group food and drink orders. Users can individually create their orders and then a designated member can host these orders by creating a group order. Once the group order is complete, each member's balance will be calculated based on the price of their individual orders and actual amount of the group order.
 
-## Demo
+## Features
 
-https://django-template.vercel.app/
+- **User Authentication**: Secure authentication using Auth0, supporting both regular accounts and social accounts (Google).
+- **Order Management**: Users can create their own orders and join group orders.
+- **Balance Calculation**: Automatic calculation of each member's balance based on their orders.
 
-## How it Works
+## Technology Stack
 
-Our Django application, `example` is configured as an installed application in `api/settings.py`:
+- **Backend Framework**: Django 4.2.13
+- **API Framework**: Django REST Framework 3.15.1
+- **Authentication**: Auth0
+- **API Documentation**: drf-spectacular
+- **Static File Handling**: WhiteNoise
+- **Database**: PostgreSQL
+- **Deployment**: Vercel
 
-```python
-# api/settings.py
-INSTALLED_APPS = [
-    # ...
-    'orders',
-]
-```
+## Setup and Installation
 
-We allow "\*.vercel.app" subdomains in `ALLOWED_HOSTS`, in addition to 127.0.0.1:
+### Prerequisites
 
-```python
-# api/settings.py
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
-```
+- Python 3.8+
+- Pipenv or virtualenv for managing dependencies
+- PostgreSQL database
 
-The `wsgi` module must use a public variable named `app` to expose the WSGI application:
+### Installation Steps
 
-```python
-# api/wsgi.py
-app = get_wsgi_application()
-```
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/thanhdev/group-order-app
+   cd group-order-app
+   ```
 
-The corresponding `WSGI_APPLICATION` setting is configured to use the `app` variable from the `api.wsgi` module:
+2. **Set up a virtual environment**:
 
-```python
-# api/settings.py
-WSGI_APPLICATION = 'api.wsgi.app'
-```
+    Using virtualenv:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   pip install -r requirements.txt
+   ```
 
-There is a single view which renders the current time in `example/views.py`:
+3. **Set up environment variables**:
+   Create a `.env` file in the root directory of your project and add the necessary environment variables:
+   ```
+   POSTGRES_DB=your_database_name
+   POSTGRES_USER=your_database_user
+   POSTGRES_PASSWORD=your_database_password
+   POSTGRES_URL=your_postgresql_url
+   AUTH0_CLIENT_ID=your_auth0_client_id
+   AUTH0_CLIENT_SECRET=your_auth0_client_secret
+   AUTH0_DOMAIN=your_auth0_domain
+   DATABASE_URL=your_postgresql_database_url
+   ```
 
-```python
-# example/views.py
-from datetime import datetime
+4. **Apply database migrations**:
+   ```bash
+   python manage.py migrate
+   ```
 
-from django.http import HttpResponse
+5. **Run the development server**:
+   ```bash
+   python manage.py runserver
+   ```
 
+## Deployment
 
-def index(request):
-    now = datetime.now()
-    html = f'''
-    <html>
-        <body>
-            <h1>Hello from Vercel!</h1>
-            <p>The current time is { now }.</p>
-        </body>
-    </html>
-    '''
-    return HttpResponse(html)
-```
+The application is deployed on Vercel as serverless functions using the Python runtime, enabling continuous deployment. For deployment instructions, follow Vercel's documentation on deploying Python applications.
 
-This view is exposed a URL through `example/urls.py`:
+Link: https://group-order.vercel.app
 
-```python
-# example/urls.py
-from django.urls import path
+## API Documentation
 
-from orders.views import index
+API documentation is provided using drf-spectacular. Once the server is running, you can access the documentation at `/api/schema/` for the schema and `/api/docs/` for the interactive documentation.
 
-urlpatterns = [
-    path('', index),
-]
-```
+## Static Files and Frontend
 
-Finally, it's made accessible to the Django server inside `api/urls.py`:
-
-```python
-# api/urls.py
-from django.urls import path, include
-
-urlpatterns = [
-    ...
-    path('', include('orders.urls')),
-]
-```
-
-This example uses the Web Server Gateway Interface (WSGI) with Django to enable handling requests on Vercel with Serverless Functions.
-
-## Running Locally
-
+WhiteNoise is used to serve static files and the frontend application. Ensure that your static files are collected and served correctly by running:
 ```bash
-python manage.py runserver
+python manage.py collectstatic -c --noinput
 ```
 
-Your Django application is now available at `http://localhost:8000`.
+## Contributing
 
-## One-Click Deploy
-
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fdjango&demo-title=Django%20%2B%20Vercel&demo-description=Use%20Django%204%20on%20Vercel%20with%20Serverless%20Functions%20using%20the%20Python%20Runtime.&demo-url=https%3A%2F%2Fdjango-template.vercel.app%2F&demo-image=https://assets.vercel.com/image/upload/v1669994241/random/django.png)
+Contributions are welcome! Please open an issue or submit a pull request on GitHub.
