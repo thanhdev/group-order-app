@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
+from members.filters import TransactionFilter
 from members.models import Member, Transaction
 from members.serializers import (
     MemberSerializer,
@@ -75,7 +76,7 @@ class TransactionViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     queryset = Transaction.objects.all().order_by("-created_at")
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
-    filterset_fields = ["from_member", "to_member", "type"]
+    filterset_class = TransactionFilter
 
     @extend_schema(
         responses={201: TransactionResponseSerializer},
