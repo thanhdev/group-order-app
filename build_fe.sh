@@ -1,5 +1,5 @@
 cd group-order
-git pull origin gh-pages
+npm run build --prod
 cd ..
 python manage.py collectstatic --noinput -c
 pre-commit run -a
