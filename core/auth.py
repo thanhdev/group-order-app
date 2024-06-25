@@ -17,9 +17,8 @@ def jwt_get_username_from_payload_handler(payload):
 
 def jwt_decode_token(token):
     header = jwt.get_unverified_header(token)
-    jwks = requests.get(
-        "https://{}/.well-known/jwks.json".format(settings.AUTH0_DOMAIN)
-    ).json()
+    with open(f"{settings.BASE_DIR}/jwks.json") as f:
+        jwks = json.load(f)
     public_key = None
     for jwk in jwks["keys"]:
         if jwk["kid"] == header["kid"]:
@@ -50,7 +49,7 @@ def get_userinfo(request):
     token = get_token_auth_header(request)
     endpoint = f"https://{settings.AUTH0_DOMAIN}/userinfo"
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(endpoint, headers=headers)
+    response = requests.get(endpoint, headers=headers, timeout=3)
     return response.json()
 
 
