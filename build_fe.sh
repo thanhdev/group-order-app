@@ -1,4 +1,5 @@
 cd group-order
+npm install
 npm run build --prod
 cd ..
 python manage.py collectstatic --noinput -c
