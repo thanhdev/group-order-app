@@ -21,11 +21,29 @@ class TestMemberViewSet(APITestCase):
 
 
 class TestTransactionViewSet(MemberTestCase):
+    def setUp(self):
+        super().setUp()
+        mixer.cycle().blend(Transaction, from_member=self.member)
+        mixer.cycle().blend(Transaction, to_member=self.member)
+
     def test_list(self):
         self.client.force_authenticate(self.member)
-        mixer.cycle().blend(Transaction)
         response = self.client.get(reverse_lazy("transactions-list"))
 
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 10)
+
+        # Filter by member
+        response = self.client.get(
+            reverse_lazy("transactions-list"), {"member": self.member.id}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 10)
+
+        # Filter by from_member
+        response = self.client.get(
+            reverse_lazy("transactions-list"), {"from_member": self.member.id}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 5)
 
