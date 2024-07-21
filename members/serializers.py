@@ -38,9 +38,14 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, value):
         user = self.context["request"].user
-        if user.balance < value:
+        if user.balance < value or value <= 0:
             raise serializers.ValidationError("Insufficient balance")
         return value
+
+    def validate_to_member(self, member):
+        if member == self.context["request"].user:
+            raise serializers.ValidationError("Cannot transfer to yourself.")
+        return member
 
     def create(self, validated_data):
         from_member = self.context["request"].user
