@@ -1,5 +1,5 @@
 {
-  "buildCommand": "./build_fe.sh",
+  "buildCommand": "./build.sh",
   "routes": [
     {
       "src": "/static/(.*)",
