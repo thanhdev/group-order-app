@@ -1,3 +1,4 @@
+git submodule update --init --recursive
 cd group-order
 npm install
 npm run build --prod
