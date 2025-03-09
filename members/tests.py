@@ -51,7 +51,7 @@ class TestTransactionViewSet(MemberTestCase):
         self.client.force_authenticate(self.member)
         data = {"to_member": self.member_2.id, "amount": -100}
 
-        # Invalid balance
+        # Invalid amount
         response = self.client.post(reverse_lazy("transactions-list"), data)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["amount"], ["Invalid amount."])
