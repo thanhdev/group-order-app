@@ -49,14 +49,15 @@ class TestTransactionViewSet(MemberTestCase):
 
     def test_create(self):
         self.client.force_authenticate(self.member)
-        data = {"to_member": self.member_2.id, "amount": 100}
+        data = {"to_member": self.member_2.id, "amount": -100}
 
-        # Insufficient balance
+        # Invalid amount
         response = self.client.post(reverse_lazy("transactions-list"), data)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["amount"], ["Insufficient balance"])
+        self.assertEqual(response.data["amount"], ["Invalid amount."])
 
         # Successful transfer
+        data["amount"] = 100
         self.member.balance = 1000
         self.member.save()
         response = self.client.post(reverse_lazy("transactions-list"), data)
