@@ -2,25 +2,26 @@ from mixer.backend.django import mixer
 from rest_framework.test import APITestCase
 
 from members.models import Member
-from orders.enums import OrderStatus, GroupOrderStatus
-from orders.models import Order, GroupOrder, OrderItem
+from orders.enums import GroupOrderStatus, OrderStatus
+from orders.models import Group, GroupOrder, Order, OrderItem
 
 
 class MemberTestCase(APITestCase):
     def setUp(self):
-        self.member = Member.objects.create_user(
-            username="member", email="member@gmail.com", password="test"
-        )
-        self.member_2 = Member.objects.create_user(
-            username="member_2", email="member_2@gmail.com", password="test"
-        )
+        self.member = Member.objects.create_user(username="member", email="member@gmail.com", password="test")
+        self.member_2 = Member.objects.create_user(username="member_2", email="member_2@gmail.com", password="test")
 
 
 class OrderTestCase(MemberTestCase):
     def setUp(self):
         super().setUp()
         mixer.cycle(2).blend(Order, member=self.member, is_paid=True)
-        self.group_order = mixer.blend(GroupOrder, host_member=self.member)
+        self.groups = [
+            mixer.blend(Group, name="America", created_by=self.member),
+            mixer.blend(Group, name="Russia", created_by=mixer.FAKE),
+        ]
+        self.groups[0].members.add(self.member)
+        self.group_order = mixer.blend(GroupOrder, host_member=self.member, group=self.groups[0])
         self.orders = mixer.cycle(2).blend(
             Order,
             member=self.member_2,

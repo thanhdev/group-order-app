@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.admins import ReadOnlyModelAdmin
-from orders.models import Order, GroupOrder, OrderItem
+from orders.models import GroupOrder, Order, OrderItem
 
 
 @admin.register(OrderItem)

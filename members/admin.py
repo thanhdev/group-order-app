@@ -46,9 +46,7 @@ class MemberAdmin(UserAdmin):
     def member_image(self, obj):
         if not obj.picture:
             return ""
-        return format_html(
-            '<img src="{}" width="50" height="50" />', obj.picture
-        )
+        return format_html('<img src="{}" width="50" height="50" />', obj.picture)
 
     member_image.short_description = "Picture"
 

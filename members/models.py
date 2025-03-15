@@ -76,9 +76,7 @@ class Transaction(models.Model):
         related_name="received_transactions",
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    type = models.CharField(
-        max_length=50, choices=Type.choices, editable=False
-    )
+    type = models.CharField(max_length=50, choices=Type.choices, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -89,6 +87,4 @@ def refund_transaction(sender, instance, **kwargs):
     with transaction.atomic():
         instance.from_member.balance = F("balance") + instance.amount
         instance.to_member.balance = F("balance") - instance.amount
-        Member.objects.bulk_update(
-            [instance.from_member, instance.to_member], ["balance"]
-        )
+        Member.objects.bulk_update([instance.from_member, instance.to_member], ["balance"])

@@ -15,23 +15,18 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from members.views import (
-    MemberViewSet,
-    TransactionViewSet,
-    MemberMeView,
-    login,
-    logout,
-    callback,
-)
-from orders.views import OrderViewSet, GroupOrderViewSet
+from members.views import (MemberMeView, MemberViewSet, TransactionViewSet,
+                           callback, login, logout)
+from orders.views import GroupOrderViewSet, GroupViewSet, OrderViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"members", MemberViewSet, basename="members")
+router.register(r"groups", GroupViewSet, basename="groups")
 router.register(r"orders", OrderViewSet, basename="orders")
 router.register(r"group-orders", GroupOrderViewSet, basename="group-orders")
 router.register(r"transactions", TransactionViewSet, basename="transactions")
