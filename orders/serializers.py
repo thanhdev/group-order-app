@@ -1,6 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 
+from members.models import Member
 from members.serializers import MemberSerializer
 from orders.enums import OrderStatus
 from orders.models import Group, GroupMember, GroupOrder, Order, OrderItem
@@ -21,12 +22,44 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
     ordered_by = MemberSerializer(read_only=True, source="member")
+    created_by = MemberSerializer(read_only=True)
+    group = serializers.PrimaryKeyRelatedField(
+        queryset=Group.objects.all(),
+        required=False,
+    )
+    on_behalf_of = serializers.PrimaryKeyRelatedField(
+        queryset=Member.objects.all(),
+        write_only=True,
+        required=False,
+    )
+
+    def validate_group(self, group):
+        member = self.context["request"].user
+        if not group.members.filter(pk=member.pk).exists():
+            raise serializers.ValidationError("You are not a member of this group.")
+        return group
+
+    def validate(self, attrs):
+        if on_behalf_of := attrs.get("on_behalf_of"):
+            if not (group := attrs.get("group")):
+                raise serializers.ValidationError("The group is required when on_behalf_of is provided.")
+            if not GroupMember.objects.filter(group=group, member=on_behalf_of).exists():
+                raise serializers.ValidationError("The on_behalf_of member is not a member of the group.")
+        return attrs
 
     def create(self, validated_data):
         items_data = validated_data.pop("items")
-        member = self.context["request"].user
+        on_behalf_of = validated_data.pop("on_behalf_of", None)
+
+        request_user = self.context["request"].user
+        if on_behalf_of is not None:
+            member = on_behalf_of
+            created_by = request_user
+        else:
+            member = created_by = request_user
+
         with transaction.atomic():
-            order = Order.objects.create(member=member, **validated_data)
+            order = Order.objects.create(member=member, created_by=created_by, **validated_data)
             items = [OrderItem(order=order, **item_data) for item_data in items_data]
             OrderItem.objects.bulk_create(items)
         return order
@@ -36,12 +69,15 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "items",
+            "group",
             "group_order",
             "is_paid",
             "total_cost",
             "status",
             "ordered_by",
             "created_at",
+            "created_by",
+            "on_behalf_of",
         )
 
 
@@ -51,6 +87,16 @@ class GroupOrderSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Order.objects.filter(status=OrderStatus.DRAFT).all(),
     )
+    group = serializers.PrimaryKeyRelatedField(
+        queryset=Group.objects.all(),
+        required=False,
+    )
+
+    def validate_group(self, group):
+        member = self.context["request"].user
+        if not group.members.filter(pk=member.pk).exists():
+            raise serializers.ValidationError("You are not a member of this group.")
+        return group
 
     def create(self, validated_data):
         orders = validated_data.pop("orders")
@@ -73,6 +119,7 @@ class GroupOrderSerializer(serializers.ModelSerializer):
         model = GroupOrder
         fields = (
             "id",
+            "group",
             "host_member",
             "orders",
             "actual_amount",

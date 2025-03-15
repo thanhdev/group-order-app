@@ -27,6 +27,35 @@ class TestOrderViewSet(OrderTestCase):
         self.assertIsNotNone(order)
         self.assertEqual(order.items.count(), 2)
 
+    def test_create_on_behalf_of(self):
+        self.client.force_authenticate(self.member)
+        data = {
+            "items": [
+                {"name": "item 1", "quantity": 1, "unit_price": 100},
+                {"name": "item 2", "quantity": 2, "unit_price": 200},
+            ],
+            "on_behalf_of": self.member_2.id,
+        }
+
+        response = self.client.post(reverse_lazy("orders-list"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["non_field_errors"][0],
+            "The group is required when on_behalf_of is provided.",
+        )
+
+        data["group"] = self.groups[0].id
+        response = self.client.post(reverse_lazy("orders-list"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["non_field_errors"][0],
+            "The on_behalf_of member is not a member of the group.",
+        )
+
+        GroupMember.objects.create(group=self.groups[0], member=self.member_2)
+        response = self.client.post(reverse_lazy("orders-list"), data)
+        self.assertEqual(response.status_code, 201)
+
     def test_list(self):
         self.client.force_authenticate(self.member)
         response = self.client.get(reverse_lazy("orders-list"))

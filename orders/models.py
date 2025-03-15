@@ -28,7 +28,7 @@ class GroupMember(models.Model):
 
 class GroupOrder(models.Model):
     group = models.ForeignKey(
-        Group, on_delete=models.CASCADE, related_name="orders", null=True, blank=True, editable=False
+        Group, on_delete=models.CASCADE, related_name="group_orders", null=True, blank=True, editable=False
     )
     host_member = models.ForeignKey(
         Member,
@@ -107,6 +107,9 @@ class OrderItem(models.Model):
 
 
 class Order(models.Model):
+    group = models.ForeignKey(
+        Group, on_delete=models.CASCADE, related_name="orders", null=True, blank=True, editable=False
+    )
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="orders", editable=False)
     group_order = models.ForeignKey(
         GroupOrder,
@@ -125,9 +128,7 @@ class Order(models.Model):
     # set to True when the order is paid
     is_paid = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    # created_by = models.ForeignKey(
-    #     Member, on_delete=models.CASCADE, related_name="on_behalf_orders", editable=False
-    # )
+    created_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="on_behalf_orders", editable=False)
 
     @cached_property
     def total_cost(self) -> int:
