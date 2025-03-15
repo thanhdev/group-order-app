@@ -34,16 +34,12 @@ class TestTransactionViewSet(MemberTestCase):
         self.assertEqual(len(response.data), 10)
 
         # Filter by member
-        response = self.client.get(
-            reverse_lazy("transactions-list"), {"member": self.member.id}
-        )
+        response = self.client.get(reverse_lazy("transactions-list"), {"member": self.member.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 10)
 
         # Filter by from_member
-        response = self.client.get(
-            reverse_lazy("transactions-list"), {"from_member": self.member.id}
-        )
+        response = self.client.get(reverse_lazy("transactions-list"), {"from_member": self.member.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 5)
 

@@ -5,11 +5,8 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 from drf_spectacular.utils import extend_schema
-from rest_framework.mixins import (
-    CreateModelMixin,
-    RetrieveModelMixin,
-    ListModelMixin,
-)
+from rest_framework.mixins import (CreateModelMixin, ListModelMixin,
+                                   RetrieveModelMixin)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,12 +14,9 @@ from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from members.filters import TransactionFilter
 from members.models import Member, Transaction
-from members.serializers import (
-    MemberSerializer,
-    TransactionSerializer,
-    TransactionResponseSerializer,
-    MemberUpdateSerializer,
-)
+from members.serializers import (MemberSerializer, MemberUpdateSerializer,
+                                 TransactionResponseSerializer,
+                                 TransactionSerializer)
 
 oauth = OAuth()
 oauth.register(
@@ -36,9 +30,7 @@ oauth.register(
 )
 
 
-class MemberViewSet(
-    ListModelMixin, RetrieveModelMixin, CreateModelMixin, GenericViewSet
-):
+class MemberViewSet(ListModelMixin, RetrieveModelMixin, CreateModelMixin, GenericViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
 
@@ -64,9 +56,7 @@ class MemberMeView(APIView):
         """
         Update the authenticated member's profile.
         """
-        serializer = MemberUpdateSerializer(
-            request.user, data=request.data, partial=True
-        )
+        serializer = MemberUpdateSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(MemberSerializer(user).data)
@@ -95,9 +85,7 @@ def callback(request):
 
 
 def login(request):
-    return oauth.auth0.authorize_redirect(
-        request, request.build_absolute_uri(reverse("oauth0-callback"))
-    )
+    return oauth.auth0.authorize_redirect(request, request.build_absolute_uri(reverse("oauth0-callback")))
 
 
 def logout(request):

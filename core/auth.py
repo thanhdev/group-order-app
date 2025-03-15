@@ -4,9 +4,8 @@ import jwt
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate
-from rest_framework_jwt.authentication import (
-    JSONWebTokenAuthentication as BaseJSONWebTokenAuthentication,
-)
+from rest_framework_jwt.authentication import \
+    JSONWebTokenAuthentication as BaseJSONWebTokenAuthentication
 
 
 def jwt_get_username_from_payload_handler(payload):

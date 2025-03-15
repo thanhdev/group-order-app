@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from members.serializers import MemberSerializer
 from orders.enums import OrderStatus
-from orders.models import OrderItem, Order, GroupOrder, Group, GroupMember
+from orders.models import Group, GroupMember, GroupOrder, Order, OrderItem
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -27,9 +27,7 @@ class OrderSerializer(serializers.ModelSerializer):
         member = self.context["request"].user
         with transaction.atomic():
             order = Order.objects.create(member=member, **validated_data)
-            items = [
-                OrderItem(order=order, **item_data) for item_data in items_data
-            ]
+            items = [OrderItem(order=order, **item_data) for item_data in items_data]
             OrderItem.objects.bulk_create(items)
         return order
 
@@ -58,9 +56,7 @@ class GroupOrderSerializer(serializers.ModelSerializer):
         orders = validated_data.pop("orders")
         host_member = self.context["request"].user
         with transaction.atomic():
-            group_order = GroupOrder.objects.create(
-                host_member=host_member, **validated_data
-            )
+            group_order = GroupOrder.objects.create(host_member=host_member, **validated_data)
             for order in orders:
                 order.group_order = group_order
                 order.status = OrderStatus.IN_PROGRESS
@@ -139,4 +135,14 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ["id", "name", "description", "logo", "created_at", "created_by", "members_count", "joined", "priority"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "logo",
+            "created_at",
+            "created_by",
+            "members_count",
+            "joined",
+            "priority",
+        ]

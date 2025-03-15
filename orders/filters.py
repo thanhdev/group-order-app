@@ -1,14 +1,12 @@
 import django_filters
 
 from members.models import Member
-from orders.models import Order, GroupOrder, Group
+from orders.models import Group, GroupOrder, Order
 
 
 class OrderFilter(django_filters.FilterSet):
     created_at = django_filters.DateTimeFromToRangeFilter()
-    group_order = django_filters.ModelChoiceFilter(
-        queryset=GroupOrder.objects.all()
-    )
+    group_order = django_filters.ModelChoiceFilter(queryset=GroupOrder.objects.all())
     member = django_filters.ModelChoiceFilter(queryset=Member.objects.all())
 
     class Meta:
@@ -18,9 +16,7 @@ class OrderFilter(django_filters.FilterSet):
 
 class GroupOrderFilter(django_filters.FilterSet):
     created_at = django_filters.DateTimeFromToRangeFilter()
-    host_member = django_filters.ModelChoiceFilter(
-        queryset=Member.objects.all()
-    )
+    host_member = django_filters.ModelChoiceFilter(queryset=Member.objects.all())
 
     class Meta:
         model = GroupOrder
@@ -29,9 +25,7 @@ class GroupOrderFilter(django_filters.FilterSet):
 
 class GroupFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
-    created_by = django_filters.ModelChoiceFilter(
-        queryset=Member.objects.all()
-    )
+    created_by = django_filters.ModelChoiceFilter(queryset=Member.objects.all())
 
     class Meta:
         model = Group

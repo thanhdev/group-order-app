@@ -4,9 +4,9 @@ from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
 from core.tests import OrderTestCase
-from members.models import Transaction, Member
+from members.models import Member, Transaction
 from orders.enums import GroupOrderStatus, OrderStatus
-from orders.models import Order, GroupOrder, OrderItem, Group, GroupMember
+from orders.models import Group, GroupMember, GroupOrder, Order, OrderItem
 
 
 class TestOrderViewSet(OrderTestCase):
@@ -35,16 +35,12 @@ class TestOrderViewSet(OrderTestCase):
         self.assertEqual(len(response.data), 9)
 
         # filter by is_paid
-        response = self.client.get(
-            reverse_lazy("orders-list"), {"is_paid": True}
-        )
+        response = self.client.get(reverse_lazy("orders-list"), {"is_paid": True})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 4)
 
         # filter by member
-        response = self.client.get(
-            reverse_lazy("orders-list"), {"member": self.member.id}
-        )
+        response = self.client.get(reverse_lazy("orders-list"), {"member": self.member.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 5)
 
@@ -52,9 +48,7 @@ class TestOrderViewSet(OrderTestCase):
         self.client.force_authenticate(self.member)
         order = self.draft_orders[0]
         mixer.blend(OrderItem, order=order, name="item 1", unit_price=100)
-        mixer.blend(
-            OrderItem, order=order, name="item 2", unit_price=200, quantity=2
-        )
+        mixer.blend(OrderItem, order=order, name="item 2", unit_price=200, quantity=2)
         url = reverse_lazy("orders-detail", kwargs={"pk": order.id})
         response = self.client.get(url)
 
@@ -97,9 +91,7 @@ class TestGroupOrderViewSet(OrderTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(
-            response.data[0]["host_member"]["id"], self.member_2.id
-        )
+        self.assertEqual(response.data[0]["host_member"]["id"], self.member_2.id)
 
         # filter by status
         response = self.client.get(
@@ -108,15 +100,11 @@ class TestGroupOrderViewSet(OrderTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(
-            response.data[0]["status"], GroupOrderStatus.IN_PROGRESS
-        )
+        self.assertEqual(response.data[0]["status"], GroupOrderStatus.IN_PROGRESS)
 
     def test_retrieve(self):
         self.client.force_authenticate(self.member)
-        url = reverse_lazy(
-            "group-orders-detail", kwargs={"pk": self.group_order.id}
-        )
+        url = reverse_lazy("group-orders-detail", kwargs={"pk": self.group_order.id})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -126,23 +114,17 @@ class TestGroupOrderViewSet(OrderTestCase):
 
     def test_delete(self):
         self.client.force_authenticate(self.member)
-        url = reverse_lazy(
-            "group-orders-detail", kwargs={"pk": self.group_order.id}
-        )
+        url = reverse_lazy("group-orders-detail", kwargs={"pk": self.group_order.id})
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, 204)
         self.group_order.refresh_from_db()
         self.assertEqual(self.group_order.status, GroupOrderStatus.CANCELLED)
-        self.assertEqual(
-            Order.objects.filter(group_order=self.group_order).count(), 0
-        )
+        self.assertEqual(Order.objects.filter(group_order=self.group_order).count(), 0)
 
     def test_complete(self):
         group_order = self.group_order
-        url = reverse_lazy(
-            "group-orders-complete", kwargs={"pk": group_order.id}
-        )
+        url = reverse_lazy("group-orders-complete", kwargs={"pk": group_order.id})
         data = {
             "orders": [self.orders[0].id],
             "actual_amount": 80,
@@ -195,9 +177,7 @@ class TestGroupOrderViewSet(OrderTestCase):
             quantity=2,
         )
         orders = group_order.orders.all()
-        url = reverse_lazy(
-            "group-orders-complete", kwargs={"pk": group_order.id}
-        )
+        url = reverse_lazy("group-orders-complete", kwargs={"pk": group_order.id})
         data = {
             "orders": [order.id for order in orders],
             "actual_amount": 400,
@@ -234,9 +214,7 @@ class TestGroupOrderViewSet(OrderTestCase):
         )
         mixer.blend(OrderItem, order=order, unit_price=100, quantity=1)
 
-        url = reverse_lazy(
-            "group-orders-complete", kwargs={"pk": group_order.id}
-        )
+        url = reverse_lazy("group-orders-complete", kwargs={"pk": group_order.id})
         data = {
             "orders": [order.id],
             "actual_amount": 80,
@@ -257,9 +235,7 @@ class TestGroupOrderViewSet(OrderTestCase):
 
     def test_complete_empty_orders(self):
         group_order = self.group_order
-        url = reverse_lazy(
-            "group-orders-complete", kwargs={"pk": group_order.id}
-        )
+        url = reverse_lazy("group-orders-complete", kwargs={"pk": group_order.id})
         data = {
             "orders": [],
             "actual_amount": 0,
@@ -281,9 +257,7 @@ class TestGroupViewSet(OrderTestCase):
         self.assertEqual(len(response.data), 2)
 
         # filter by created_by
-        response = self.client.get(
-            reverse_lazy("groups-list"), {"created_by": self.member.id}
-        )
+        response = self.client.get(reverse_lazy("groups-list"), {"created_by": self.member.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["created_by"]["id"], self.member.id)
@@ -291,9 +265,7 @@ class TestGroupViewSet(OrderTestCase):
         self.assertEqual(response.data[0]["joined"], True)
 
         # filter by name
-        response = self.client.get(
-            reverse_lazy("groups-list"), {"name": "Amer"}
-        )
+        response = self.client.get(reverse_lazy("groups-list"), {"name": "Amer"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["name"], "America")

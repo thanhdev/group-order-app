@@ -2,25 +2,18 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.mixins import (
-    CreateModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin,
-    ListModelMixin,
-)
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin, RetrieveModelMixin)
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from orders.filters import OrderFilter, GroupOrderFilter, GroupFilter
-from orders.models import Order, GroupOrder, Group
-from orders.serializers import (
-    OrderSerializer,
-    GroupOrderSerializer,
-    CompleteGroupOrderSerializer,
-    GroupOrderResponseSerializer,
-    GroupSerializer,
-)
+from orders.filters import GroupFilter, GroupOrderFilter, OrderFilter
+from orders.models import Group, GroupOrder, Order
+from orders.serializers import (CompleteGroupOrderSerializer,
+                                GroupOrderResponseSerializer,
+                                GroupOrderSerializer, GroupSerializer,
+                                OrderSerializer)
 
 
 class OrderViewSet(
@@ -78,16 +71,9 @@ class GroupOrderViewSet(
         """
         group_order = self.get_object()
         if group_order.host_member != request.user:
-            raise PermissionDenied(
-                {
-                    "detail": "You do not have permission to complete this "
-                              "group order."
-                }
-            )
+            raise PermissionDenied({"detail": "You do not have permission to complete this " "group order."})
 
-        serializer = CompleteGroupOrderSerializer(
-            instance=group_order, data=request.data
-        )
+        serializer = CompleteGroupOrderSerializer(instance=group_order, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -107,9 +93,7 @@ class GroupViewSet(ModelViewSet):
         """
         group = self.get_object()
         if group.members.filter(pk=request.user.pk).exists():
-            raise ValidationError(
-                {"detail": "You are already a member of this group."}
-            )
+            raise ValidationError({"detail": "You are already a member of this group."})
 
         group.members.add(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -121,9 +105,7 @@ class GroupViewSet(ModelViewSet):
         """
         group = self.get_object()
         if not group.members.filter(pk=request.user.pk).exists():
-            raise ValidationError(
-                {"detail": "You are not a member of this group."}
-            )
+            raise ValidationError({"detail": "You are not a member of this group."})
 
         group.members.remove(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -140,9 +122,7 @@ class GroupViewSet(ModelViewSet):
         try:
             priority = int(priority)
         except ValueError:
-            raise ValidationError(
-                {"priority": "A valid integer is required."}
-            )
+            raise ValidationError({"priority": "A valid integer is required."})
 
         group_member = group.groupmember_set.get(member=request.user)
         group_member.priority = priority
