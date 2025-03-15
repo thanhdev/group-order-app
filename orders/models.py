@@ -9,7 +9,27 @@ from members.models import Member, Transaction
 from orders.enums import GroupOrderStatus, OrderStatus
 
 
+class Group(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    logo = models.URLField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="created_order_groups"
+    )
+    members = models.ManyToManyField(Member, related_name="order_groups", through="GroupMember")
+
+
+class GroupMember(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    is_admin = models.BooleanField(default=False)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    priority = models.IntegerField(default=0)
+
+
 class GroupOrder(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="orders", null=True, blank=True, editable=False)
     host_member = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
@@ -113,6 +133,9 @@ class Order(models.Model):
     # set to True when the order is paid
     is_paid = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    # created_by = models.ForeignKey(
+    #     Member, on_delete=models.CASCADE, related_name="on_behalf_orders", editable=False
+    # )
 
     @cached_property
     def total_cost(self) -> int:

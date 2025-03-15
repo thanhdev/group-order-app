@@ -1,7 +1,7 @@
 import django_filters
 
 from members.models import Member
-from orders.models import Order, GroupOrder
+from orders.models import Order, GroupOrder, Group
 
 
 class OrderFilter(django_filters.FilterSet):
@@ -25,3 +25,14 @@ class GroupOrderFilter(django_filters.FilterSet):
     class Meta:
         model = GroupOrder
         fields = ["status", "created_at", "host_member"]
+
+
+class GroupFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    created_by = django_filters.ModelChoiceFilter(
+        queryset=Member.objects.all()
+    )
+
+    class Meta:
+        model = Group
+        fields = ["name", "created_by"]

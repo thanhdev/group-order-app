@@ -1,6 +1,7 @@
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
@@ -9,15 +10,16 @@ from rest_framework.mixins import (
 )
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from orders.filters import OrderFilter, GroupOrderFilter
-from orders.models import Order, GroupOrder
+from orders.filters import OrderFilter, GroupOrderFilter, GroupFilter
+from orders.models import Order, GroupOrder, Group
 from orders.serializers import (
     OrderSerializer,
     GroupOrderSerializer,
     CompleteGroupOrderSerializer,
     GroupOrderResponseSerializer,
+    GroupSerializer,
 )
 
 
@@ -79,7 +81,7 @@ class GroupOrderViewSet(
             raise PermissionDenied(
                 {
                     "detail": "You do not have permission to complete this "
-                    "group order."
+                              "group order."
                 }
             )
 
@@ -90,3 +92,59 @@ class GroupOrderViewSet(
         serializer.save()
 
         return Response(self.get_serializer(group_order).data)
+
+
+class GroupViewSet(ModelViewSet):
+    queryset = Group.objects.order_by("-created_at")
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_class = GroupFilter
+
+    @action(detail=True, methods=["post"], serializer_class=None)
+    def join(self, request, **kwargs):
+        """
+        Join a group.
+        """
+        group = self.get_object()
+        if group.members.filter(pk=request.user.pk).exists():
+            raise ValidationError(
+                {"detail": "You are already a member of this group."}
+            )
+
+        group.members.add(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], serializer_class=None)
+    def leave(self, request, **kwargs):
+        """
+        Leave a group.
+        """
+        group = self.get_object()
+        if not group.members.filter(pk=request.user.pk).exists():
+            raise ValidationError(
+                {"detail": "You are not a member of this group."}
+            )
+
+        group.members.remove(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], serializer_class=None)
+    def priority(self, request, **kwargs):
+        """
+        Update your priority in a group.
+        """
+        group = self.get_object()
+        priority = request.data.get("priority")
+        if not priority:
+            raise ValidationError({"priority": "This field is required."})
+        try:
+            priority = int(priority)
+        except ValueError:
+            raise ValidationError(
+                {"priority": "A valid integer is required."}
+            )
+
+        group_member = group.groupmember_set.get(member=request.user)
+        group_member.priority = priority
+        group_member.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

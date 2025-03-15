@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from members.serializers import MemberSerializer
 from orders.enums import OrderStatus
-from orders.models import OrderItem, Order, GroupOrder
+from orders.models import OrderItem, Order, GroupOrder, Group, GroupMember
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -107,3 +107,36 @@ class CompleteGroupOrderSerializer(serializers.Serializer):
         actual_amount = self.validated_data["actual_amount"]
         self.instance.complete(to_complete_orders, actual_amount)
         return self.instance
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    members_count = serializers.SerializerMethodField()
+    joined = serializers.SerializerMethodField()
+    created_by = MemberSerializer(read_only=True)
+    priority = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_members_count(instance):
+        return instance.members.count()
+
+    def get_joined(self, instance):
+        member = self.context["request"].user
+        return instance.members.filter(pk=member.pk).exists()
+
+    def get_priority(self, instance):
+        member = self.context["request"].user
+        try:
+            return GroupMember.objects.get(group=instance, member=member).priority
+        except GroupMember.DoesNotExist:
+            return None
+
+    def create(self, validated_data):
+        member = self.context["request"].user
+        with transaction.atomic():
+            group = Group.objects.create(created_by=member, **validated_data)
+            GroupMember.objects.create(group=group, member=member, is_admin=True)
+        return group
+
+    class Meta:
+        model = Group
+        fields = ["id", "name", "description", "logo", "created_at", "created_by", "members_count", "joined", "priority"]

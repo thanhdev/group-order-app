@@ -28,10 +28,11 @@ from members.views import (
     logout,
     callback,
 )
-from orders.views import OrderViewSet, GroupOrderViewSet
+from orders.views import OrderViewSet, GroupOrderViewSet, GroupViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"members", MemberViewSet, basename="members")
+router.register(r"groups", GroupViewSet, basename="groups")
 router.register(r"orders", OrderViewSet, basename="orders")
 router.register(r"group-orders", GroupOrderViewSet, basename="group-orders")
 router.register(r"transactions", TransactionViewSet, basename="transactions")
