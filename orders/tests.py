@@ -1,5 +1,3 @@
-import json
-
 from mixer.backend.django import mixer
 from rest_framework.reverse import reverse_lazy
 
