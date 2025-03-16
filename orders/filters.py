@@ -8,19 +8,21 @@ class OrderFilter(django_filters.FilterSet):
     created_at = django_filters.DateTimeFromToRangeFilter()
     group_order = django_filters.ModelChoiceFilter(queryset=GroupOrder.objects.all())
     member = django_filters.ModelChoiceFilter(queryset=Member.objects.all())
+    group = django_filters.ModelChoiceFilter(queryset=Group.objects.all())
 
     class Meta:
         model = Order
-        fields = ["is_paid", "created_at", "group_order", "member"]
+        fields = ["is_paid", "created_at", "group_order", "member", "group"]
 
 
 class GroupOrderFilter(django_filters.FilterSet):
     created_at = django_filters.DateTimeFromToRangeFilter()
     host_member = django_filters.ModelChoiceFilter(queryset=Member.objects.all())
+    group = django_filters.ModelChoiceFilter(queryset=Group.objects.all())
 
     class Meta:
         model = GroupOrder
-        fields = ["status", "created_at", "host_member"]
+        fields = ["status", "created_at", "host_member", "group"]
 
 
 class GroupFilter(django_filters.FilterSet):
