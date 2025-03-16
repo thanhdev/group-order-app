@@ -27,6 +27,25 @@ class TestOrderViewSet(OrderTestCase):
         self.assertIsNotNone(order)
         self.assertEqual(order.items.count(), 2)
 
+    def test_create_with_group(self):
+        self.client.force_authenticate(self.member)
+        data = {
+            "items": [
+                {"name": "item 1", "quantity": 1, "unit_price": 100},
+                {"name": "item 2", "quantity": 2, "unit_price": 200},
+            ],
+            "group": self.groups[0].id,
+        }
+        response = self.client.post(reverse_lazy("orders-list"), data)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(response.data["items"]), 2)
+
+        order = Order.objects.last()
+        self.assertIsNotNone(order)
+        self.assertEqual(order.group, self.groups[0])
+        self.assertEqual(order.items.count(), 2)
+
     def test_create_on_behalf_of(self):
         self.client.force_authenticate(self.member)
         data = {
@@ -105,6 +124,26 @@ class TestGroupOrderViewSet(OrderTestCase):
         self.assertEqual(group_order.orders.count(), 3)
         for order in group_order.orders.all():
             self.assertEqual(order.status, GroupOrderStatus.IN_PROGRESS)
+
+    def test_create_with_group(self):
+        self.client.force_authenticate(self.member)
+        order_ids = [order.id for order in self.draft_orders[:3]]
+        data = {"orders": order_ids, "group": self.groups[0].id}
+
+        response = self.client.post(reverse_lazy("group-orders-list"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["non_field_errors"][0],
+            "All orders must belong to the same group.",
+        )
+
+        for order in self.draft_orders[:3]:
+            order.group = self.groups[0]
+            order.save()
+        response = self.client.post(reverse_lazy("group-orders-list"), data)
+        self.assertEqual(response.status_code, 201)
+        group_order = GroupOrder.objects.last()
+        self.assertEqual(group_order.group, self.groups[0])
 
     def test_list(self):
         self.client.force_authenticate(self.member)

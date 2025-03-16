@@ -98,6 +98,13 @@ class GroupOrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You are not a member of this group.")
         return group
 
+    def validate(self, attrs):
+        orders = attrs.get("orders", [])
+        for order in orders:
+            if order.group != attrs.get("group"):
+                raise serializers.ValidationError("All orders must belong to the same group.")
+        return attrs
+
     def create(self, validated_data):
         orders = validated_data.pop("orders")
         host_member = self.context["request"].user
