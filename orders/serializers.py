@@ -1,5 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
+from typing import Optional
 
 from members.models import Member
 from members.serializers import MemberSerializer
@@ -173,7 +174,7 @@ class GroupSerializer(serializers.ModelSerializer):
         member = self.context["request"].user
         return instance.members.filter(pk=member.pk).exists()
 
-    def get_priority(self, instance) -> int | None:
+    def get_priority(self, instance) -> Optional[int]:
         member = self.context["request"].user
         try:
             return GroupMember.objects.get(group=instance, member=member).priority
