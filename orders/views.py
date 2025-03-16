@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin
@@ -13,6 +13,7 @@ from orders.serializers import (
     CompleteGroupOrderSerializer,
     GroupOrderResponseSerializer,
     GroupOrderSerializer,
+    GroupPrioritySerializer,
     GroupSerializer,
     OrderSerializer,
 )
@@ -112,21 +113,18 @@ class GroupViewSet(ModelViewSet):
         group.members.remove(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["post"], serializer_class=None)
+    @action(detail=True, methods=["post"], serializer_class=GroupPrioritySerializer)
     def priority(self, request, **kwargs):
         """
         Update your priority in a group.
         """
         group = self.get_object()
-        priority = request.data.get("priority")
-        if not priority:
-            raise ValidationError({"priority": "This field is required."})
-        try:
-            priority = int(priority)
-        except ValueError:
-            raise ValidationError({"priority": "A valid integer is required."})
+        if not group.members.filter(pk=request.user.pk).exists():
+            raise ValidationError({"detail": "You are not a member of this group."})
 
-        group_member = group.groupmember_set.get(member=request.user)
-        group_member.priority = priority
-        group_member.save()
+        serializer = GroupPrioritySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(group=group, member=request.user)
+
+        group.refresh_from_db()
         return Response(status=status.HTTP_204_NO_CONTENT)
