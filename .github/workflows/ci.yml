@@ -51,3 +51,5 @@ jobs:
 
     - name: Run tests
       run: python manage.py test
+      env:
+        POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
