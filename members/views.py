@@ -5,8 +5,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 from drf_spectacular.utils import extend_schema
-from rest_framework.mixins import (CreateModelMixin, ListModelMixin,
-                                   RetrieveModelMixin)
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,9 +13,12 @@ from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from members.filters import TransactionFilter
 from members.models import Member, Transaction
-from members.serializers import (MemberSerializer, MemberUpdateSerializer,
-                                 TransactionResponseSerializer,
-                                 TransactionSerializer)
+from members.serializers import (
+    MemberSerializer,
+    MemberUpdateSerializer,
+    TransactionResponseSerializer,
+    TransactionSerializer,
+)
 
 oauth = OAuth()
 oauth.register(

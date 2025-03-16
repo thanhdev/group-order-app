@@ -2,18 +2,20 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
-                                   ListModelMixin, RetrieveModelMixin)
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from orders.filters import GroupFilter, GroupOrderFilter, OrderFilter
 from orders.models import Group, GroupOrder, Order
-from orders.serializers import (CompleteGroupOrderSerializer,
-                                GroupOrderResponseSerializer,
-                                GroupOrderSerializer, GroupSerializer,
-                                OrderSerializer)
+from orders.serializers import (
+    CompleteGroupOrderSerializer,
+    GroupOrderResponseSerializer,
+    GroupOrderSerializer,
+    GroupSerializer,
+    OrderSerializer,
+)
 
 
 class OrderViewSet(
