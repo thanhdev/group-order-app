@@ -98,6 +98,13 @@ class GroupOrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You are not a member of this group.")
         return group
 
+    def validate(self, attrs):
+        orders = attrs.get("orders", [])
+        for order in orders:
+            if order.group != attrs.get("group"):
+                raise serializers.ValidationError("All orders must belong to the same group.")
+        return attrs
+
     def create(self, validated_data):
         orders = validated_data.pop("orders")
         host_member = self.context["request"].user
@@ -159,14 +166,14 @@ class GroupSerializer(serializers.ModelSerializer):
     priority = serializers.SerializerMethodField()
 
     @staticmethod
-    def get_members_count(instance):
+    def get_members_count(instance) -> int:
         return instance.members.count()
 
-    def get_joined(self, instance):
+    def get_joined(self, instance) -> bool:
         member = self.context["request"].user
         return instance.members.filter(pk=member.pk).exists()
 
-    def get_priority(self, instance):
+    def get_priority(self, instance) -> int | None:
         member = self.context["request"].user
         try:
             return GroupMember.objects.get(group=instance, member=member).priority
@@ -193,3 +200,13 @@ class GroupSerializer(serializers.ModelSerializer):
             "joined",
             "priority",
         ]
+
+
+class GroupPrioritySerializer(serializers.Serializer):
+    priority = serializers.IntegerField()
+
+    def save(self, group, member):
+        group_member = GroupMember.objects.get(group=group, member=member)
+        group_member.priority = self.validated_data["priority"]
+        group_member.save()
+        return group

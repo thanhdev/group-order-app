@@ -20,8 +20,7 @@ from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from members.views import (MemberMeView, MemberViewSet, TransactionViewSet,
-                           callback, login, logout)
+from members.views import MemberMeView, MemberViewSet, TransactionViewSet, callback, login, logout
 from orders.views import GroupOrderViewSet, GroupViewSet, OrderViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
